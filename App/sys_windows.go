@@ -189,6 +189,7 @@ var (
 	pShowWindow             = user32.NewProc("ShowWindow")
 	pIsIconic               = user32.NewProc("IsIconic")
 	pLoadImageW             = user32.NewProc("LoadImageW")
+	pSetWindowPos           = user32.NewProc("SetWindowPos")
 	pGetSystemMetrics       = user32.NewProc("GetSystemMetrics")
 	pGetModuleHandleW       = kernel32.NewProc("GetModuleHandleW")
 )
@@ -446,4 +447,30 @@ func quitTray() {
 	} else {
 		os.Exit(0)
 	}
+}
+
+// setOnTop keeps the settings window above other windows (MSFS in windowed or borderless mode included).
+func setOnTop(on bool) {
+	h := findAppWindow()
+	if h == 0 {
+		return
+	}
+	insertAfter := ^uintptr(1) // HWND_NOTOPMOST (-2)
+	if on {
+		insertAfter = ^uintptr(0) // HWND_TOPMOST (-1)
+	}
+	pSetWindowPos.Call(h, insertAfter, 0, 0, 0, 0, 0x0001|0x0002|0x0010) // NOSIZE | NOMOVE | NOACTIVATE
+}
+
+// applyOnTopSoon waits for a just-opened window to appear, then applies the setting.
+func applyOnTopSoon(on func() bool) {
+	go func() {
+		for i := 0; i < 40; i++ {
+			time.Sleep(250 * time.Millisecond)
+			if findAppWindow() != 0 {
+				setOnTop(on())
+				return
+			}
+		}
+	}()
 }

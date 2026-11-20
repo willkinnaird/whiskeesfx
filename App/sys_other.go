@@ -29,3 +29,6 @@ var quitCh = make(chan struct{})
 
 func runTray(menu TrayMenu) { <-quitCh }
 func quitTray()             { close(quitCh) }
+
+func setOnTop(on bool)              {}
+func applyOnTopSoon(on func() bool) {}

@@ -135,6 +135,7 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
     <button role="tab" data-act="view" data-v="profiles" id="tabProf">Profiles</button>
   </div>
   <button class="btn acc hidden" id="updBtn" data-act="update">Update</button>
+  <button class="btn" data-act="ontop" id="pinBtn" title="Keep this window on top of the sim (works when MSFS runs windowed or borderless)">Pin on top</button>
   <button class="btn" data-act="hide" id="hideBtn" title="The app keeps running in the system tray">Hide to tray</button>
 </header>
 <div id="banners"></div>
@@ -167,6 +168,7 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
   <div class="card grp">
     <h2>App</h2>
     <label class="row"><input type="checkbox" data-act="set" data-k="startWithWindows" id="sWin"> Start with Windows (in the tray)</label>
+    <label class="row"><input type="checkbox" data-act="set" data-k="onTop" id="sTop"> Keep this window on top of the sim (MSFS windowed or borderless)</label>
     <label class="row"><input type="checkbox" data-act="set" data-k="keepInTray" id="sTray"> Keep running in the tray when the window closes</label>
     <label class="row"><input type="checkbox" data-act="set" data-k="autoUpdate" id="sUpd"> Check for updates automatically</label>
     <div class="field">Theme<div class="seg" id="themeSeg"><button data-act="theme" data-v="auto">Match Windows</button><button data-act="theme" data-v="light">Light</button><button data-act="theme" data-v="dark">Dark</button></div></div>
@@ -304,6 +306,8 @@ function render() {
   $("tabAdv").classList.toggle("on", view === "advanced");
   $("tabProf").classList.toggle("on", view === "profiles");
   $("hideBtn").classList.toggle("hidden", !s.settings.keepInTray);
+  $("pinBtn").classList.toggle("ok", !!s.settings.onTop);
+  $("pinBtn").textContent = s.settings.onTop ? "Pinned on top" : "Pin on top";
   const p = s.profile || {};
   paint("prof", `<span class="dot ${s.sim.fresh ? "playing" : ""}"></span><span class="muted">Aircraft</span><strong>${esc(p.name || "none")}</strong><span class="muted">· ${s.manualProfile ? "chosen by you" : "auto"}</span>`);
   const sim = s.sim, c = [];
@@ -378,6 +382,7 @@ function renderBasic() {
   $("profSel").value = s.manualProfile || "";
   $("sWin").checked = s.settings.startWithWindows;
   $("sTray").checked = s.settings.keepInTray;
+  $("sTop").checked = s.settings.onTop;
   $("sUpd").checked = s.settings.autoUpdate;
   const u = s.update || {};
   $("verLine").textContent = `App ${s.version} · effects ${s.settings.pkgEffects || "not installed"} · module ${s.settings.pkgModule || "not installed"}` +
@@ -503,6 +508,7 @@ document.addEventListener("click", (ev) => {
     case "theme": post("/api/settings", {theme: t.dataset.v}); break;
     case "preset": post("/api/preset", {Name: t.dataset.v}); break;
     case "dismiss": post("/api/dismiss", {Key: t.dataset.k}); break;
+    case "ontop": post("/api/settings", {onTop: !S.settings.onTop}); break;
     case "leave-test": post("/api/tests", Object.assign({}, S.tests, {testMode: false})); break;
     case "welcome-done": post("/api/welcome"); break;
     case "install-packages": post("/api/install-packages"); break;

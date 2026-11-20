@@ -43,6 +43,7 @@ type Config struct {
 	View          string                   `json:"view"`
 	Theme         string                   `json:"theme"` // auto, light, dark
 	Welcomed      bool                     `json:"welcomed"`
+	OnTop         bool                     `json:"onTop"`
 	KeepInTray    bool                     `json:"keepInTray"`
 	AutoUpdate    bool                     `json:"autoUpdate"`
 	DevMode       bool                     `json:"devMode"`

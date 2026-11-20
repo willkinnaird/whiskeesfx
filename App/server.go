@@ -96,7 +96,7 @@ func (a *App) state(full bool) map[string]any {
 		"groups": a.groupViews(evs), "master": master, "tests": a.tests, "paused": a.paused, "message": a.message,
 		"progress": getProgress(), "dismissed": a.cfg.Dismissed, "update": getUpdate(), "devMode": a.cfg.DevMode, "tweaks": len(a.cfg.Tweaks),
 		"settings": map[string]any{
-			"theme": themeOr(a.cfg.Theme), "keepInTray": a.cfg.KeepInTray, "autoUpdate": a.cfg.AutoUpdate, "startWithWindows": a.startsWin,
+			"theme": themeOr(a.cfg.Theme), "onTop": a.cfg.OnTop, "keepInTray": a.cfg.KeepInTray, "autoUpdate": a.cfg.AutoUpdate, "startWithWindows": a.startsWin,
 			"sourceIni": a.sourcePath(), "workDir": a.cfg.WorkDir, "community": a.cfg.Community, "repo": a.cfg.Repo,
 			"pkgModule": a.pkgMod, "pkgEffects": a.pkgFx, "welcomed": a.cfg.Welcomed,
 			"workDirOK": a.workOK, "communityOK": a.commOK,
@@ -286,6 +286,10 @@ func routes() *http.ServeMux {
 		}
 		if v, ok := b["theme"].(string); ok && (v == "auto" || v == "light" || v == "dark") {
 			app.cfg.Theme = v
+		}
+		if v, ok := b["onTop"].(bool); ok {
+			app.cfg.OnTop = v
+			go setOnTop(v)
 		}
 		if v, ok := b["keepInTray"].(bool); ok {
 			app.cfg.KeepInTray = v

@@ -58,7 +58,7 @@ func main() {
 	app.tick()
 
 	mux := routes()
-	mux.HandleFunc("/api/show", func(w http.ResponseWriter, r *http.Request) { openWindow(url); w.Write([]byte("{}")) })
+	mux.HandleFunc("/api/show", func(w http.ResponseWriter, r *http.Request) { showWindow(); w.Write([]byte("{}")) })
 	server = &http.Server{Handler: guard(mux), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second}
 	go server.Serve(ln)
 
@@ -112,12 +112,12 @@ func main() {
 		hiding = false
 	}
 	if !tray {
-		openWindow(url)
+		showWindow()
 	}
 	runTray(TrayMenu{
-		Open:     func() { openWindow(url) },
-		Basic:    func() { setView("basic"); openWindow(url) },
-		Advanced: func() { setView("advanced"); openWindow(url) },
+		Open:     showWindow,
+		Basic:    func() { setView("basic"); showWindow() },
+		Advanced: func() { setView("advanced"); showWindow() },
 		Pause: func() {
 			app.mu.Lock()
 			g := app.cfg.Groups["*"]
@@ -135,6 +135,11 @@ func main() {
 	})
 	shutdown()
 }
+
+func onTopSetting() bool { app.mu.Lock(); defer app.mu.Unlock(); return app.cfg.OnTop }
+
+// showWindow opens (or brings forward) the settings window and applies "always on top".
+func showWindow() { openWindow(url); applyOnTopSoon(onTopSetting) }
 
 func setView(v string) {
 	app.mu.Lock()
