@@ -114,6 +114,7 @@ struct Global {
 	double humidForce = -1;       // -1 = work it out, 0 = never humid, 1 = always humid
 	double humidVisibility = 3000; // visibility below this (m) counts as humid (haze, mist, fog)
 	double angleScale = 1;        // multiply rotate values by this (1 = degrees passed as-is; 0.0174533 if the sim wants radians)
+	double maxDials = 16;         // the sim ignores EVERY dial of an effect sent more than this, so never send more
 };
 static Global G;
 
@@ -246,6 +247,7 @@ static void setGlobal(const char* key, const char* val) {
 		{"touchdown_seconds", &G.touchdownSeconds},
 		{"engine_outer_x", &G.outerX}, {"engine_outer_y", &G.outerY}, {"engine_outer_z", &G.outerZ},
 		{"angle_scale", &G.angleScale},
+		{"max_dials", &G.maxDials},
 	};
 	for (auto& k : keys) if (streq(key, k.k)) { char* e; double v = strtod(val, &e); if (e != val) *k.v = v; }
 }
@@ -446,6 +448,7 @@ struct Inst {
 	double retry = 0;
 	double kill = 0;      // restart countdown after switching off
 	int failures = 0;
+	bool warnedDials = false;
 };
 static Inst inst[MAX_DEFS][4];
 static char instName[MAX_DEFS][48];   // which definition each row was last used for
@@ -506,6 +509,7 @@ static void driveInst(int di, int k, Inst& in, const EffectDef& d, bool want, Fs
 	double sc = G.angleScale;
 	FsVec3d pbh = {d.rot[0] * sc, d.rot[1] * sc * (mirror ? -1 : 1), d.rot[2] * sc * (mirror ? -1 : 1)};
 	if (!want) {
+		if (in.id == FSVFXID_NULL) in.retry = 0;   // not wanted: nothing to retry (and no stale FAILED in the status)
 		if (in.playing) {
 			fsVfxStopInstance(in.id); in.playing = false; LOG("%s[%d] off", d.name, k);
 			if (d.restart > 0) in.kill = d.restart;
@@ -541,6 +545,13 @@ static void driveInst(int di, int k, Inst& in, const EffectDef& d, bool want, Fs
 			params[np].paramName = pNameOf(d, q);
 			params[np].RPNExpression = exprs[q];
 			np++;
+		}
+		// Over the limit the sim drops all of them (1 m default puffs), so send the first maxDials only:
+		// the effect's own dials come first, then its preset's, so what's cut is the least specific.
+		int cap = (int)G.maxDials;
+		if (cap > 0 && np > cap) {
+			if (!in.warnedDials) { LOG("%s: %d dials, the sim takes %d - the last %d are not sent", d.name, np, cap, np - cap); in.warnedDials = true; }
+			np = cap;
 		}
 		in.id = fsVfxSpawnOnSimObject(d.guid, SIM_OBJECT_ID_USER, nullptr, off, pbh, -1.f, np ? params : nullptr, np);
 		if (in.id == FSVFXID_NULL) {
@@ -681,10 +692,12 @@ static void writeStatus() {
 	n += snprintf(buf + n, sizeof(buf) - n, "\neffects:\n");
 	for (int i = 0; i < nDefs && n < (int)sizeof(buf) - 400; i++) {
 		const EffectDef& d = defs[i];
-		n += snprintf(buf + n, sizeof(buf) - n, "  %-20s at=%-7s %s ", d.name, anchorName(d.anchor), d.on ? "" : "(switched off)");
+		int dials = d.nParams + (d.engineParams ? 2 : 0);
+		n += snprintf(buf + n, sizeof(buf) - n, "  %-20s at=%-7s dials=%d%s %s ", d.name, anchorName(d.anchor), dials,
+			dials > (int)G.maxDials ? "(TOO MANY: extra not sent)" : "", d.on ? "" : "(switched off)");
 		for (int k = 0; k < 4; k++) {
 			const Inst& in = inst[i][k];
-			if (in.id == FSVFXID_NULL && in.failures == 0) continue;
+			if (in.id == FSVFXID_NULL && (in.failures == 0 || in.retry <= 0)) continue; // a failure only shows while it's retrying
 			n += snprintf(buf + n, sizeof(buf) - n, " [%d %s (%.1f,%.1f,%.1f)]", k,
 				in.id == FSVFXID_NULL ? "FAILED" : in.playing ? "PLAYING" : "stopped", in.off.x, in.off.y, in.off.z);
 		}

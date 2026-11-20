@@ -99,8 +99,8 @@ func pickProfile(profiles []*Profile, title string) *Profile {
 			generic = p
 		}
 		for _, m := range p.Match {
-			if m != "" && strings.Contains(t, strings.ToLower(m)) && len(m) > bestLen {
-				best, bestLen = p, len(m)
+			if n := matchScore(t, m); n > bestLen {
+				best, bestLen = p, n
 			}
 		}
 	}
@@ -108,6 +108,47 @@ func pickProfile(profiles []*Profile, title string) *Profile {
 		return best
 	}
 	return generic
+}
+
+// matchScore: a match line is words joined by "&"; every word must be in the title (as a whole word,
+// or as written when it has spaces), and a word starting
+// with "!" must not be ("FenixA320 & IAE & !SL"). The score is how many letters matched, so the most
+// specific profile wins.
+func matchScore(titleLower, match string) int {
+	score := 0
+	for _, w := range strings.Split(match, "&") {
+		w = strings.ToLower(strings.TrimSpace(w))
+		if w == "" {
+			continue
+		}
+		if strings.HasPrefix(w, "!") {
+			if neg := strings.TrimSpace(w[1:]); neg != "" && containsWord(titleLower, neg) {
+				return 0
+			}
+			continue
+		}
+		found := false
+		if strings.Contains(w, " ") {
+			found = strings.Contains(titleLower, w)
+		} else {
+			found = containsWord(titleLower, w)
+		}
+		if !found {
+			return 0
+		}
+		score += len(w)
+	}
+	return score
+}
+
+// containsWord: neg appears as a whole word (so "!SL" doesn't trip on "SLOW").
+func containsWord(s, w string) bool {
+	for _, f := range strings.FieldsFunc(s, func(r rune) bool { return r == ' ' || r == '_' || r == '-' || r == '/' }) {
+		if f == w {
+			return true
+		}
+	}
+	return false
 }
 
 // apply puts the profile on top of the settings file.
