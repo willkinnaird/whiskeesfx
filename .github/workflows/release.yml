@@ -8,6 +8,16 @@ name: release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch: # or start it by hand (GitHub: Actions > release > Run workflow) with a version
+    inputs:
+      version:
+        description: "Version, e.g. v1.2.0"
+        required: true
+      notes:
+        description: "What changed"
+        required: false
+env:
+  VER: ${{ github.event.inputs.version || github.ref_name }}
 permissions:
   contents: write
 jobs:
@@ -23,7 +33,7 @@ jobs:
         run: |
           cp ../VisualFX/visualfx.ini defaults/visualfx.ini
           GOOS=windows GOARCH=amd64 go build -trimpath \
-            -ldflags "-s -w -H windowsgui -X main.version=${GITHUB_REF_NAME} -X main.defaultRepo=${GITHUB_REPOSITORY}" \
+            -ldflags "-s -w -H windowsgui -X main.version=${VER} -X main.defaultRepo=${GITHUB_REPOSITORY}" \
             -o ../dist/WhiskeesFX.exe .
       - name: Zip settings, profiles and packages
         run: |
@@ -39,12 +49,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          notes="$(git tag -l --format='%(contents)' "$GITHUB_REF_NAME")"
-          [ -z "$notes" ] && notes="WhiskeesFX $GITHUB_REF_NAME"
+          notes="${{ github.event.inputs.notes }}"
+          [ -z "$notes" ] && notes="$(git tag -l --format='%(contents)' "$VER")"
+          [ -z "$notes" ] && notes="WhiskeesFX $VER"
           files="dist/WhiskeesFX.exe dist/defaults.zip"
           for p in whiskeesfx-visualfx whiskeesfx-visualfx-effects; do [ -f "dist/$p.zip" ] && files="$files dist/$p.zip"; done
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" $files --clobber
+          if gh release view "$VER" >/dev/null 2>&1; then
+            gh release upload "$VER" $files --clobber
           else
-            gh release create "$GITHUB_REF_NAME" $files --title "WhiskeesFX $GITHUB_REF_NAME" --notes "$notes"
+            gh release create "$VER" $files --target "$GITHUB_SHA" --title "WhiskeesFX $VER" --notes "$notes"
           fi
