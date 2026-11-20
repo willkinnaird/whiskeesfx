@@ -55,9 +55,17 @@ Vortex sources: FAA wake turbulence briefing https://www.faa.gov/sites/faa.gov/f
 
 ## Wake vortices and wing vapour: reference video (20 Nov)
 "Emirates 777 wake vortex spectacular!" (flugsnug, youtube.com/watch?v=ViKYFsN3p24), picked by Whiskee as the target look.
-- Vortices: right behind the wingtip/flap edge the condensation is a clean, narrow, smooth TUBE (the low-pressure core),
-  not smoke. Further back it twists, thickens and breaks up into chaotic, wispy tufts.
-  -> vortex_near = the tube (dense, narrow, steady, ~1 s); vortex = the break-up (fast early growth, wander, corkscrew, wind).
+- Frames checked (video attached 20 Nov, 73 s, London approach and landing in drizzle):
+  - Vortices come off the WINGTIPS only (none visible from the flaps on the 777).
+  - At the tip: a thin, bright, clean rope (the low-pressure core), not smoke.
+  - It stays one continuous rope for 10+ s, hanging where the aircraft left it, so it trails upward from the tips
+    as the aircraft descends.
+  - As it ages it thickens slowly, snakes in large smooth waves and coils into loops like a phone cord; the two
+    ropes drift apart and sink.
+  - Grey-dark against the bright sky, white against trees.
+  -> No per-particle scatter (it turns the rope into puffs): chaos from coherent motion (waving emission + slow
+     corkscrew), growth over a long life, and wind.
+- Wing vapour: on short final a white sheet over most of the upper wing, flickering.
 - Wing vapour: thicker and faster than ours, and it flickers at random, each wing on its own.
   -> vapour faster (-65 m/s) and bigger; alpha x1.35 with a per-side flicker (0.1 to 1.1).
 Old values: VisualFX/visualfx_before_tube.ini.
