@@ -38,6 +38,7 @@ type Config struct {
 	Tweaks        []Tweak                  `json:"tweaks"`
 	Groups        map[string]*GroupSetting `json:"groups"`
 	ManualProfile string                   `json:"manualProfile"` // "" = automatic
+	Assign        map[string]string        `json:"assign"`        // aircraft title -> profile id, chosen by you
 	View          string                   `json:"view"`
 	Theme         string                   `json:"theme"` // auto, light, dark
 	Welcomed      bool                     `json:"welcomed"`
@@ -47,11 +48,13 @@ type Config struct {
 }
 
 type Tests struct {
-	Humid   int    `json:"humid"`  // -1 auto, 0 never, 1 always
-	Runway  string `json:"runway"` // auto, wet, dry
-	AllOff  bool   `json:"allOff"`
-	Solo    string `json:"solo"`
-	Markers bool   `json:"markers"`
+	Humid    int    `json:"humid"`  // -1 auto, 0 never, 1 always
+	Runway   string `json:"runway"` // auto, wet, dry
+	AllOff   bool   `json:"allOff"`
+	Solo     string `json:"solo"`
+	Markers  bool   `json:"markers"`
+	TestMode bool   `json:"testMode"`
+	Selected string `json:"selected"` // the test point being moved
 }
 
 type App struct {
@@ -157,6 +160,9 @@ func (a *App) load() {
 	}
 	if a.cfg.Groups == nil {
 		a.cfg.Groups = map[string]*GroupSetting{}
+	}
+	if a.cfg.Assign == nil {
+		a.cfg.Assign = map[string]string{}
 	}
 	if a.cfg.Repo == "" {
 		a.cfg.Repo = defaultRepo
@@ -301,6 +307,11 @@ func (a *App) pickActive() *Profile {
 			}
 		}
 	}
+	if id := a.cfg.Assign[a.title]; id != "" {
+		if p := a.profileByID(id); p != nil {
+			return p
+		}
+	}
 	return pickProfile(a.profiles, a.title)
 }
 
@@ -312,22 +323,46 @@ func (a *App) compose() {
 	a.composeLocked()
 }
 
-func (a *App) build() *Ini {
+// settingsFor: the settings as they are for one aircraft profile (defaults, profile, your tweaks, moved points),
+// before the Basic-view groups and the test switches.
+func (a *App) settingsFor(p *Profile) *Ini {
 	if a.source == nil {
 		return nil
 	}
 	f := a.source.Clone()
-	a.active.apply(f)
-	for _, scope := range []string{"all", a.activeID()} {
+	p.apply(f)
+	pid := ""
+	if p != nil {
+		pid = p.ID
+	}
+	for _, scope := range []string{"all", pid} {
 		for _, t := range a.cfg.Tweaks {
-			if t.Scope == scope {
+			if t.Scope == scope && t.Section != "@points" {
 				f.Set(t.Section, t.Key, t.Value)
 			}
 		}
 	}
+	a.applyPointShifts(f, p)
+	return f
+}
+
+func (a *App) build() *Ini {
+	f := a.settingsFor(a.active)
+	if f == nil {
+		return nil
+	}
 	a.applyGroups(f)
 	a.applyTests(f)
 	return f
+}
+
+func (a *App) profileByID(id string) *Profile {
+	for _, p := range a.profiles {
+		if p.ID == id {
+			return p
+		}
+	}
+	return nil
 }
 
 func (a *App) activeID() string {
@@ -485,6 +520,13 @@ func (a *App) applyTests(f *Ini) {
 	if t.AllOff {
 		f.Set("", "enabled", "0")
 	}
+	if t.TestMode { // every effect paused so the position dots are easy to see
+		for _, sec := range effectSections(f) {
+			f.Set(sec, "on", "0")
+		}
+		a.testDots(f, a.active, t.Selected)
+		return
+	}
 	for _, sec := range effectSections(f) {
 		if isMarker(sec) {
 			if t.Markers {
@@ -598,15 +640,7 @@ func (a *App) effectViews() []EffectView {
 	}
 	defer func() { a.viewsOK = true }()
 	// what the module actually gets, minus the test switches, so the UI shows real values
-	f := a.source.Clone()
-	a.active.apply(f)
-	for _, scope := range []string{"all", a.activeID()} {
-		for _, t := range a.cfg.Tweaks {
-			if t.Scope == scope {
-				f.Set(t.Section, t.Key, t.Value)
-			}
-		}
-	}
+	f := a.settingsFor(a.active)
 	tweaked := map[string]bool{}
 	for _, t := range a.cfg.Tweaks {
 		tweaked[t.Section+"|"+t.Key] = true

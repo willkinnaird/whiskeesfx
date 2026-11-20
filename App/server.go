@@ -281,7 +281,7 @@ func routes() *http.ServeMux {
 		}
 		app.mu.Lock()
 		defer app.mu.Unlock()
-		if v, ok := b["view"].(string); ok && (v == "basic" || v == "advanced") {
+		if v, ok := b["view"].(string); ok && (v == "basic" || v == "advanced" || v == "profiles") {
 			app.cfg.View = v
 		}
 		if v, ok := b["theme"].(string); ok && (v == "auto" || v == "light" || v == "dark") {
@@ -378,6 +378,103 @@ func routes() *http.ServeMux {
 		app.composeLocked()
 		return nil
 	})
+	m.HandleFunc("/api/profiles", func(w http.ResponseWriter, r *http.Request) {
+		jsonOut(w, app.profilesView(r.URL.Query().Get("id")))
+	})
+	post("/api/airframes/scan", func(r *http.Request) error {
+		app.mu.Lock()
+		comm := app.cfg.Community
+		app.mu.Unlock()
+		go scanAirframes(comm)
+		return nil
+	})
+	post("/api/assign", func(r *http.Request) error {
+		var b struct{ Title, Profile string }
+		if !readBody(r, &b) || b.Title == "" {
+			return errf("bad request")
+		}
+		app.mu.Lock()
+		defer app.mu.Unlock()
+		if b.Profile == "" {
+			delete(app.cfg.Assign, b.Title)
+		} else {
+			app.cfg.Assign[b.Title] = b.Profile
+		}
+		app.saveConfig()
+		app.active = app.pickActive()
+		app.composeLocked()
+		return nil
+	})
+	post("/api/point", func(r *http.Request) error {
+		var b struct {
+			Profile, ID string
+			Axis        int
+			Delta       float64
+			Set         *float64
+		}
+		if !readBody(r, &b) {
+			return errf("bad request")
+		}
+		app.mu.Lock()
+		defer app.mu.Unlock()
+		p := app.profileByID(b.Profile)
+		if p == nil {
+			return errf("unknown profile")
+		}
+		f := app.settingsFor(p)
+		if f == nil {
+			return errf("no settings loaded")
+		}
+		if err := app.movePoint(p, f, b.ID, b.Axis, b.Delta, b.Set); err != nil {
+			return err
+		}
+		app.saveConfig()
+		app.composeLocked()
+		return nil
+	})
+	post("/api/profile/duplicate", func(r *http.Request) error {
+		var b struct{ ID, Name string }
+		readBody(r, &b)
+		app.mu.Lock()
+		defer app.mu.Unlock()
+		src := app.profileByID(b.ID)
+		if src == nil {
+			return errf("unknown profile")
+		}
+		name := strings.TrimSpace(b.Name)
+		if name == "" {
+			name = src.Name + " (copy)"
+		}
+		np, err := duplicateProfile(src, name, myProfilesDir())
+		if err != nil {
+			return err
+		}
+		// carry this profile's tweaks over to the copy
+		for _, t := range append([]Tweak(nil), app.cfg.Tweaks...) {
+			if t.Scope == src.ID {
+				app.cfg.Tweaks = append(app.cfg.Tweaks, Tweak{np.ID, t.Section, t.Key, t.Value})
+			}
+		}
+		app.saveConfig()
+		app.profMod = ""
+		return nil
+	})
+	post("/api/profile/reset", func(r *http.Request) error {
+		var b struct{ ID string }
+		readBody(r, &b)
+		app.mu.Lock()
+		defer app.mu.Unlock()
+		var keep []Tweak
+		for _, t := range app.cfg.Tweaks {
+			if t.Scope != b.ID {
+				keep = append(keep, t)
+			}
+		}
+		app.cfg.Tweaks = keep
+		app.saveConfig()
+		app.composeLocked()
+		return nil
+	})
 	post("/api/bake", func(r *http.Request) error {
 		app.mu.Lock()
 		defer app.mu.Unlock()
@@ -415,4 +512,81 @@ func themeOr(t string) string {
 func dirExists(p string) bool {
 	fi, err := os.Stat(p)
 	return err == nil && fi.IsDir()
+}
+
+type ProfileListItem struct {
+	ID        string   `json:"id"`
+	Name      string   `json:"name"`
+	User      bool     `json:"user"`
+	Generic   bool     `json:"generic"`
+	Active    bool     `json:"active"`
+	Changed   bool     `json:"changed"`
+	Airframes []string `json:"airframes"`
+}
+
+type AirframeView struct {
+	Title   string `json:"title"`
+	Package string `json:"package"`
+	Profile string `json:"profile"`
+	How     string `json:"how"` // auto, assigned, none
+	Loaded  bool   `json:"loaded"`
+}
+
+// profilesView: everything the Profiles tab shows; id picks the profile being edited ("" = the one in use).
+func (a *App) profilesView(id string) map[string]any {
+	afs, scanned, busy := airframes()
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.lastSeen = time.Now()
+	if scanned.IsZero() && !busy {
+		go scanAirframes(a.cfg.Community)
+	}
+	titles := map[string]bool{}
+	var list []AirframeView
+	add := func(t, pkg string) {
+		if t == "" || titles[t] {
+			return
+		}
+		titles[t] = true
+		av := AirframeView{Title: t, Package: pkg, Loaded: t == a.title, How: "auto"}
+		if pid := a.cfg.Assign[t]; pid != "" && a.profileByID(pid) != nil {
+			av.Profile, av.How = pid, "assigned"
+		} else if p := pickProfile(a.profiles, t); p != nil {
+			av.Profile = p.ID
+			if p.Generic {
+				av.How = "none"
+			}
+		}
+		list = append(list, av)
+	}
+	add(a.title, "")
+	for _, af := range afs {
+		add(af.Title, af.Package)
+	}
+	changed := map[string]bool{}
+	for _, t := range a.cfg.Tweaks {
+		changed[t.Scope] = true
+	}
+	var profs []ProfileListItem
+	for _, p := range a.profiles {
+		it := ProfileListItem{ID: p.ID, Name: p.Name, User: p.User, Generic: p.Generic, Active: a.active == p, Changed: changed[p.ID]}
+		for _, av := range list {
+			if av.Profile == p.ID {
+				it.Airframes = append(it.Airframes, av.Title)
+			}
+		}
+		profs = append(profs, it)
+	}
+	sel := a.profileByID(id)
+	if sel == nil {
+		sel = a.active
+	}
+	out := map[string]any{"profiles": profs, "airframes": list, "scanning": busy, "scanned": !scanned.IsZero(), "title": a.title, "tests": a.tests}
+	if sel != nil {
+		if f := a.settingsFor(sel); f != nil {
+			out["selected"] = sel.ID
+			out["points"] = a.pointViews(sel, f)
+		}
+	}
+	return out
 }

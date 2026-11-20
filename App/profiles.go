@@ -12,6 +12,7 @@ package main
 //   [effect.NAME]              per-effect changes for this aircraft (on=0, param=..., offset=...)
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -231,4 +232,26 @@ func isAlnum(w string) bool {
 		}
 	}
 	return true
+}
+
+// duplicateProfile copies a profile into your own folder under a new name (matching nothing until you assign it).
+func duplicateProfile(src *Profile, name, dir string) (*Profile, error) {
+	os.MkdirAll(dir, 0755)
+	id := "my-" + slug(name)
+	path := filepath.Join(dir, id+".ini")
+	for i := 2; fileExists(path); i++ {
+		path = filepath.Join(dir, fmt.Sprintf("%s-%d.ini", id, i))
+	}
+	f := src.ini.Clone()
+	f.Set("profile", "name", name)
+	for {
+		if !f.Delete("profile", "match") {
+			break
+		}
+	}
+	f.Delete("profile", "generic")
+	if err := writeFileAtomic(path, []byte("# Copy of "+src.Name+", made in the WhiskeesFX app\n"+f.String())); err != nil {
+		return nil, err
+	}
+	return loadProfile(path, true)
 }

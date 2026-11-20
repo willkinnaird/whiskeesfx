@@ -79,6 +79,37 @@ h2{margin:0 0 10px;font-size:15px;font-weight:700}
 select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:7px 10px}
 .hidden{display:none!important}
 .warnline{color:var(--warntext);font-size:12px}
+/* profiles */
+#profv{display:flex;flex-wrap:wrap;min-height:calc(100vh - 60px)}
+#profv nav{flex:1 1 240px;max-width:280px;border-right:1px solid var(--line);background:var(--side);padding:14px 10px;display:flex;flex-direction:column;gap:4px;max-height:calc(100vh - 60px);overflow:auto}
+#profv main{flex:999 1 520px;min-width:0;padding:20px 24px;display:flex;flex-direction:column;gap:16px;max-height:calc(100vh - 60px);overflow:auto}
+#profv aside{flex:1 1 270px;max-width:320px;border-left:1px solid var(--line);background:var(--side);padding:16px;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 60px);overflow:auto}
+.pitem{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;padding:9px 11px;border-radius:10px;border:0;background:transparent;color:var(--text)}
+.pitem:hover{background:var(--hover)}.pitem.sel{background:var(--sel);box-shadow:inset 3px 0 0 var(--acc)}
+.pitem .n{font-size:14px;font-weight:600;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.pitem.sel .n{font-weight:800}
+.tag{font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;background:var(--acc);color:var(--onacc);letter-spacing:.3px}
+.tag.alt{background:var(--wetbg);color:var(--wettext)}.tag.soft{background:var(--chip);color:var(--muted)}
+.ptab{display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr)) 70px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.ptab input{width:100%;padding:6px 8px;border-radius:7px;border:1px solid var(--line2);background:var(--bg);font-family:Consolas,monospace;font-size:12px;text-align:right}
+.ptab input:disabled{opacity:.35}
+.afrow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1.3fr) 84px;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line)}
+.afrow.now{background:var(--sel)}
+.afrow select{width:100%}
+.nud{display:grid;grid-template-columns:repeat(3,44px);gap:4px}
+.nud button{width:44px;height:40px;border-radius:8px;border:1px solid var(--line2);background:var(--panel);font-weight:800;font-size:13px}
+.nud .c{width:44px;height:40px;border-radius:50%;background:var(--acc2)}
+.dg{position:relative;margin:0 auto}
+.dg svg{position:absolute;left:0;top:0}
+.pdot{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid var(--bg);background:var(--acc);padding:0}
+.pdot.sel{background:var(--acc2);box-shadow:0 0 0 5px rgba(224,123,82,.3)}
+.pdot span{position:absolute;left:18px;top:-2px;white-space:nowrap;font-size:11px;font-weight:600;color:var(--muted);pointer-events:none}
+.pdot.l span{left:auto;right:18px}.pdot.q span{display:none}.pdot:hover span{display:block;z-index:2;background:var(--panel);padding:1px 4px;border-radius:4px}.pdot.sel span{color:var(--acc2);font-weight:800}
+.nud button:disabled{opacity:.3;cursor:default}
+.seg button{white-space:nowrap}
+.steps{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:12px}
+.steps button{display:flex;align-items:center;gap:9px;border:0;background:transparent;padding:2px 0;font-size:13px;text-align:left}
+.steps .b{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;background:var(--chip);color:var(--muted);flex-shrink:0}
+.steps .b.done{background:var(--acc);color:var(--onacc)}.steps .b.cur{background:var(--acc2);color:#FFFDF8}
 #welcome{position:fixed;inset:0;background:var(--bg);overflow:auto;z-index:10;display:flex;justify-content:center;padding:48px 20px}
 #welcome .box{max-width:620px;width:100%;display:flex;flex-direction:column;gap:18px}
 #welcome h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-1px}
@@ -99,6 +130,7 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
   <div class="tabs" role="tablist" aria-label="View">
     <button role="tab" data-act="view" data-v="basic" id="tabBasic">Basic</button>
     <button role="tab" data-act="view" data-v="advanced" id="tabAdv">Advanced</button>
+    <button role="tab" data-act="view" data-v="profiles" id="tabProf">Profiles</button>
   </div>
   <button class="btn acc hidden" id="updBtn" data-act="update">Update</button>
   <button class="btn" data-act="hide" id="hideBtn" title="The app keeps running in the system tray">Hide to tray</button>
@@ -164,6 +196,28 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
       <button class="btn small" data-act="bake">Write my tweaks into the defaults file</button>
     </div>
     <div><div class="label">Recent events</div><div id="events" class="events" style="margin-top:8px"></div></div>
+  </aside>
+</section>
+
+<!-- PROFILES -->
+<section id="profv" class="hidden" aria-label="Aircraft profiles">
+  <nav aria-label="Profiles">
+    <div class="row" style="padding:0 4px 8px"><span class="label grow">Profiles</span><button class="btn small ok" data-act="newprofile" title="Make a profile for the aircraft loaded now">+ New</button></div>
+    <div id="plist"></div>
+  </nav>
+  <main>
+    <div class="row" style="flex-wrap:wrap;align-items:flex-end">
+      <div class="grow" style="display:flex;flex-direction:column;gap:3px"><span class="small muted" id="pkind"></span><h1 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.5px" id="pname"></h1></div>
+      <button class="btn" data-act="pdup">Duplicate</button>
+      <button class="btn" data-act="preset-prof" id="presetProfBtn">Reset my changes</button>
+    </div>
+    <div class="seg" style="max-width:420px" id="psub"><button data-act="psub" data-v="airframes">Airframes</button><button data-act="psub" data-v="positions">Positions</button><button data-act="psub" data-v="test">Test mode</button></div>
+    <div id="pbody"></div>
+  </main>
+  <aside aria-label="Test mode">
+    <div class="row"><strong class="grow" style="font-size:15px">Test mode</strong><button class="switch" data-act="testmode" id="testSw" aria-label="Test mode on or off"></button></div>
+    <div class="small muted" id="testNote">Dots appear in the sim at every position (effects pause). Pick one and nudge it until it sits on the aircraft.</div>
+    <div id="testPanel"></div>
   </aside>
 </section>
 
@@ -243,8 +297,10 @@ function render() {
   view = s.view || "basic";
   $("basic").classList.toggle("hidden", view !== "basic");
   $("adv").classList.toggle("hidden", view !== "advanced");
+  $("profv").classList.toggle("hidden", view !== "profiles");
   $("tabBasic").classList.toggle("on", view === "basic");
   $("tabAdv").classList.toggle("on", view === "advanced");
+  $("tabProf").classList.toggle("on", view === "profiles");
   $("hideBtn").classList.toggle("hidden", !s.settings.keepInTray);
   const p = s.profile || {};
   paint("prof", `<span class="dot ${s.sim.fresh ? "playing" : ""}"></span><span class="muted">Aircraft</span><strong>${esc(p.name || "none")}</strong><span class="muted">· ${s.manualProfile ? "chosen by you" : "auto"}</span>`);
@@ -263,6 +319,7 @@ function render() {
   else if (s.message) b.push(`<div class="banner"><span class="grow">${esc(s.message)}</span></div>`);
   const un = s.update || {};
   if ((un.appNew || un.dataNew) && !un.busy) b.push(`<div class="banner"><div class="grow" style="display:flex;flex-direction:column;gap:4px"><strong>WhiskeesFX ${esc(un.latest)} is ready</strong><span class="notes small">${esc(un.notes || "")}</span></div><button class="btn small ok" data-act="update">Update now</button></div>`);
+  if (s.tests.testMode) b.push(`<div class="banner"><span class="grow"><strong>Test mode is on.</strong> Position dots are showing in the sim and every effect is paused.</span><button class="btn small" data-act="leave-test">Leave test mode</button></div>`);
   if (s.progress) b.push(`<div class="banner"><span class="grow">${esc(s.progress)}</span></div>`);
   if (p.generic && s.title) b.push(`<div class="banner"><span class="grow">No profile for “${esc(s.title)}” yet: using the generic one (the sim's standard N1, A321 positions).</span><button class="btn small" data-act="newprofile">New profile for this aircraft</button></div>`);
   paint("banners", b.join(""));
@@ -275,7 +332,7 @@ function render() {
     seg.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.v === v));
   });
   renderWelcome();
-  if (view === "basic") renderBasic(); else renderAdv();
+  if (view === "basic") renderBasic(); else if (view === "advanced") renderAdv(); else renderProfiles();
 }
 
 function renderWelcome() {
@@ -442,6 +499,7 @@ document.addEventListener("click", (ev) => {
     case "view": post("/api/settings", {view: t.dataset.v}); break;
     case "theme": post("/api/settings", {theme: t.dataset.v}); break;
     case "preset": post("/api/preset", {Name: t.dataset.v}); break;
+    case "leave-test": post("/api/tests", Object.assign({}, S.tests, {testMode: false})); break;
     case "welcome-done": post("/api/welcome"); break;
     case "install-packages": post("/api/install-packages"); break;
     case "hide": api("/api/hide", {}); break;
@@ -479,6 +537,152 @@ document.addEventListener("keydown", (ev) => { // Enter in a text field saves it
   const t = ev.target;
   if (ev.key === "Enter" && t.tagName === "INPUT" && t.type === "text") t.blur();
 });
+
+// ---- profiles ---------------------------------------------------------------------------------------
+let P = null, pSel = "", pSub = (location.hash.match(/psub=(\w+)/) || [])[1] || "airframes", pStep = 0.1, pFilter = "", pOnly = false, pLast = 0;
+const AX = ["x", "y", "z"];
+async function loadProfiles(force) {
+  if (!force && Date.now() - pLast < 1800) return;
+  pLast = Date.now();
+  P = await api("/api/profiles" + (pSel ? "?id=" + encodeURIComponent(pSel) : ""));
+  if (!pSel && P.selected) pSel = P.selected;
+}
+const profName = (id) => ((P && P.profiles || []).find((p) => p.id === id) || {}).name || id;
+function renderProfiles() {
+  loadProfiles(false).then(() => P && drawProfiles());
+  if (P) drawProfiles();
+}
+function drawProfiles() {
+  const sel = P.profiles.find((p) => p.id === pSel) || {};
+  paint("plist", P.profiles.map((p) => `<button class="pitem ${p.id === pSel ? "sel" : ""}" data-act="ppick" data-id="${esc(p.id)}">
+    <span class="n">${esc(p.name)}${p.active ? '<span class="tag">IN USE</span>' : ""}${p.changed ? '<span class="tag alt">EDITED</span>' : ""}</span>
+    <span class="small muted">${p.user ? "Yours" : p.generic ? "Fallback for anything unknown" : "Shipped"} · ${(p.airframes || []).length} airframe${(p.airframes || []).length === 1 ? "" : "s"}</span></button>`).join(""));
+  $("pname").textContent = sel.name || "";
+  $("pkind").textContent = sel.user ? "Your profile" : sel.generic ? "Used for any aircraft without its own profile" : "Shipped profile · your changes are kept separately and survive updates";
+  $("presetProfBtn").disabled = !sel.changed;
+  document.querySelectorAll("#psub button").forEach((b) => b.classList.toggle("on", b.dataset.v === pSub));
+  if (pSub === "airframes") drawAirframes(); else if (pSub === "positions") drawPositions(sel); else drawTestView(sel);
+  drawTestPanel(sel);
+}
+function drawAirframes() {
+  const q = pFilter.toLowerCase();
+  const rows = P.airframes.filter((a) => (!q || a.title.toLowerCase().includes(q)) && (!pOnly || a.profile === pSel));
+  const opts = (a) => `<option value="">Automatic${a.how === "assigned" ? "" : " (" + esc(profName(a.profile)) + ")"}</option>` +
+    P.profiles.map((p) => `<option value="${esc(p.id)}" ${a.how === "assigned" && a.profile === p.id ? "selected" : ""}>${esc(p.name)}</option>`).join("");
+  const how = (a) => a.how === "assigned" ? '<span class="tag alt">assigned</span>' : a.how === "none" ? '<span class="tag alt">no profile</span>' : '<span class="tag soft">auto</span>';
+  const head = `<div class="row" style="flex-wrap:wrap"><div class="grow" style="display:flex;flex-direction:column"><strong style="font-size:16px">Your airframes</strong>
+      <span class="small muted">${P.scanning ? "Looking through your Community folder…" : "Every aircraft in your Community folder, and the profile each one uses."}</span></div>
+      <label class="row small"><input type="checkbox" data-act="ponly" ${pOnly ? "checked" : ""}> Only this profile</label>
+      <input class="search" style="width:200px" type="search" id="pfilter" placeholder="Find an aircraft" aria-label="Find an aircraft" value="${esc(pFilter)}">
+      <button class="btn small" data-act="rescan">Rescan</button></div>`;
+  const list = rows.map((a) => `<div class="afrow ${a.loaded ? "now" : ""}"><div style="display:flex;flex-direction:column;min-width:0"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(a.title)}">${esc(a.title)}</span>
+      <span class="small muted">${a.loaded ? '<span class="play">● Loaded now</span>' : esc(a.package || "")}</span></div>
+      <select data-act="assign" data-title="${esc(a.title)}" aria-label="Profile for ${esc(a.title)}">${opts(a)}</select>${how(a)}</div>`).join("");
+  if (document.activeElement && document.activeElement.id === "pfilter") { paint("pafl", list); return; }
+  paint("pbody", head + `<div class="card" style="padding:0;overflow:hidden"><div id="pafl">${list || '<div class="muted" style="padding:14px">No aircraft found yet.</div>'}</div></div>`);
+  painted["pafl"] = list;
+}
+function drawPositions(sel) {
+  const pts = P.points || [];
+  const cell = (pt, i) => `<input type="number" step="0.01" value="${pt.value[i]}" ${pt.editable[i] ? "" : "disabled"} data-act="pset" data-id="${pt.id}" data-axis="${i}" aria-label="${esc(pt.label)} ${AX[i]}">`;
+  let html = `<div class="card"><div class="ptab label" style="border-bottom:1px solid var(--line)"><span>Position (m)</span><span style="text-align:right">Side</span><span style="text-align:right">Up</span><span style="text-align:right">Fwd</span><span></span></div>`;
+  let g = "";
+  for (const pt of pts) {
+    if (pt.group !== g) { g = pt.group; html += `<div class="label" style="padding:10px 0 2px">${esc(g)}</div>`; }
+    html += `<div class="ptab"><div style="display:flex;flex-direction:column"><span style="font-weight:600">${esc(pt.label)}${pt.changed ? ' <span class="tag alt">moved</span>' : ""}</span></div>${cell(pt, 0)}${cell(pt, 1)}${cell(pt, 2)}
+      <button class="btn small" data-act="ptest" data-id="${pt.id}">Test</button></div>`;
+  }
+  html += `</div><div class="small muted">Side: distance from the centre line. For a pair (both engines, both wingtips) one value sets both. Values for the engine top and bottom are the engine radius; for the wingtip bottom, the winglet height.</div>`;
+  const a = document.activeElement;
+  if (a && $("pbody").contains(a) && a.tagName === "INPUT" && a.type === "number") return;
+  paint("pbody", html);
+}
+// schematic drawings: positions of each point on a front and a side view (not to scale)
+const FRONT = {engine_centre:[400,190], engine_top:[400,156], engine_bottom:[400,224], pylon_top:[400,138], wingtip_top:[540,62,1], wingtip_bottom:[528,112,1], flap_end:[468,128,1], main_gear:[330,262], ground:[200,268,1], nose_gear:[280,262,1]};
+const SIDE = {intake_lip:[205,150,1], engine_centre:[252,150], nozzle:[300,150], engine_top:[252,132], engine_bottom:[252,168], nose_gear:[110,200,1], main_gear:[330,200], flap_end:[392,106], apu:[540,62,1], pylon_top:[268,112]};
+function drawTestView(sel) {
+  const t = P.tests || {};
+  const dots = (map, quiet) => (P.points || []).filter((p) => map[p.id]).map((p) => {
+    const [x, y, l] = map[p.id];
+    return `<button title="${esc(p.label)}" class="pdot ${p.id === t.selected ? "sel" : ""} ${l ? "l" : ""} ${quiet && p.id !== t.selected ? "q" : ""}" style="left:${x}px;top:${y}px" data-act="ppoint" data-id="${p.id}" aria-label="${esc(p.label)}"><span>${esc(p.label)}</span></button>`;
+  }).join("");
+  const front = `<div class="dg" style="width:580px;height:290px"><svg width="580" height="290" viewBox="0 0 580 290" fill="none" aria-hidden="true" stroke="currentColor" style="color:var(--muted)">
+    <line x1="0" y1="268" x2="580" y2="268" stroke-dasharray="6 6" opacity=".6"/><ellipse cx="280" cy="150" rx="40" ry="44" stroke-width="2"/>
+    <path d="M245 140 L48 108 L44 114 L244 160 Z" stroke-width="2"/><path d="M315 140 L530 108 L534 114 L316 160 Z" stroke-width="2"/><path d="M534 112 L542 60" stroke-width="3"/><path d="M44 112 L36 60" stroke-width="3"/>
+    <circle cx="160" cy="190" r="32" stroke-width="2"/><circle cx="400" cy="190" r="32" stroke-width="2"/><line x1="400" y1="158" x2="400" y2="140" stroke-width="3"/><line x1="160" y1="158" x2="160" y2="140" stroke-width="3"/>
+    <line x1="230" y1="196" x2="230" y2="262" stroke-width="3"/><line x1="330" y1="196" x2="330" y2="262" stroke-width="3"/><line x1="280" y1="194" x2="280" y2="262" stroke-width="3"/></svg>${dots(FRONT)}</div>`;
+  const side = `<div class="dg" style="width:580px;height:220px"><svg width="580" height="220" viewBox="0 0 580 220" fill="none" aria-hidden="true" stroke="currentColor" style="color:var(--muted)">
+    <line x1="0" y1="204" x2="580" y2="204" stroke-dasharray="6 6" opacity=".6"/><path d="M30 110 C30 92 60 84 100 84 L480 84 C510 84 525 70 550 30 L560 30 L552 110 L60 124 C40 124 30 120 30 110 Z" stroke-width="2"/>
+    <rect x="205" y="132" width="95" height="36" rx="17" stroke-width="2"/><line x1="268" y1="112" x2="268" y2="132" stroke-width="3"/><line x1="110" y1="124" x2="110" y2="200" stroke-width="3"/><line x1="330" y1="124" x2="330" y2="200" stroke-width="3"/></svg>${dots(SIDE, true)}</div>`;
+  let html = "";
+  if (sel.id && !sel.active) html += `<div class="banner" style="margin:0">Test mode shows the profile in use (${esc(profName((P.profiles.find((p) => p.active) || {}).id))}). Load an aircraft that uses “${esc(sel.name)}” to check its dots.</div>`;
+  html += `<div class="card"><div class="label">Head-on · tap a dot to pick it</div>${front}</div><div class="card"><div class="label">Side · hover a dot for its name</div>${side}</div>`;
+  paint("pbody", html);
+}
+function drawTestPanel(sel) {
+  const t = P.tests || {};
+  $("testSw").classList.toggle("on", !!t.testMode);
+  const pts = P.points || [];
+  const i = Math.max(0, pts.findIndex((p) => p.id === t.selected));
+  const pt = pts[i];
+  if (!t.testMode || !pt) { paint("testPanel", t.testMode ? "" : `<button class="btn ok" data-act="testmode">Start test mode</button>`); return; }
+  const ax = pt.editable;
+  const b = (lab, a, d, aria) => `<button data-act="nudge" data-axis="${a}" data-dir="${d}" aria-label="${aria}" ${ax[a] ? "" : "disabled"}>${lab}</button>`;
+  const steps = [0.01, 0.05, 0.1, 0.5].map((v) => `<button data-act="pstep" data-v="${v}" class="${v === pStep ? "on" : ""}">${Math.round(v * 100)} cm</button>`).join("");
+  paint("testPanel", `<div class="card grp" style="padding:14px">
+      <span class="small muted">Step ${i + 1} of ${pts.length} · moving</span><strong style="font-size:17px">${esc(pt.label)}</strong>
+      <span class="small muted" style="line-height:1.5">${esc(pt.hint)}</span>
+      <div class="row" style="align-items:center"><div class="nud"><span></span>${b("↑", 1, 1, "Up")}<span></span>${b(pt.outSign ? "In" : "←", 0, -1, "In")}<span class="c"></span>${b(pt.outSign ? "Out" : "→", 0, 1, "Out")}<span></span>${b("↓", 1, -1, "Down")}<span></span></div>
+        <div style="display:flex;flex-direction:column;gap:4px"><button class="btn small" data-act="nudge" data-axis="2" data-dir="1" ${ax[2] ? "" : "disabled"}>Fwd</button><button class="btn small" data-act="nudge" data-axis="2" data-dir="-1" ${ax[2] ? "" : "disabled"}>Back</button></div></div>
+      <div class="seg">${steps}</div>
+      <span class="mono small">side ${pt.value[0]} · up ${pt.value[1]} · fwd ${pt.value[2]}</span>
+      <span class="small muted">Keys: arrows, PgUp/PgDn fore and aft, Shift for 5× steps. Saved as you go.</span>
+      <div class="row"><button class="btn" data-act="pprev" ${i === 0 ? "disabled" : ""}>Back</button><button class="btn ok grow" data-act="pnext">${i === pts.length - 1 ? "Finish" : "Looks right · next"}</button></div>
+    </div>
+    <div class="steps">${pts.map((p, k) => `<button data-act="ppoint" data-id="${p.id}"><span class="b ${k < i ? "done" : k === i ? "cur" : ""}">${k < i ? "✓" : k + 1}</span><span style="${k === i ? "font-weight:800" : ""}">${esc(p.label)}</span></button>`).join("")}</div>`);
+}
+async function nudge(axis, dir) {
+  const pt = (P.points || []).find((p) => p.id === (P.tests || {}).selected);
+  if (!pt || !pt.editable[axis]) return;
+  let d = dir * pStep * (window.__shift ? 5 : 1);
+  if (axis === 0 && pt.outSign) d *= pt.outSign;
+  await api("/api/point", {Profile: activeProfileID(), ID: pt.id, Axis: axis, Delta: d});
+  await loadProfiles(true); drawProfiles();
+}
+const activeProfileID = () => ((P.profiles || []).find((p) => p.active) || {}).id || pSel;
+async function setTest(changes) { await api("/api/tests", Object.assign({}, S.tests, changes)); await refresh(true); await loadProfiles(true); drawProfiles(); }
+document.addEventListener("keydown", (ev) => {
+  window.__shift = ev.shiftKey;
+  if (view !== "profiles" || !P || !(P.tests || {}).testMode) return;
+  const tg = ev.target.tagName;
+  if (tg === "INPUT" || tg === "SELECT" || tg === "TEXTAREA") return;
+  const k = {ArrowUp: [1, 1], ArrowDown: [1, -1], ArrowLeft: [0, -1], ArrowRight: [0, 1], PageUp: [2, 1], PageDown: [2, -1]}[ev.key];
+  if (k) { ev.preventDefault(); nudge(k[0], k[1]); }
+});
+document.addEventListener("keyup", (ev) => { window.__shift = ev.shiftKey; });
+document.addEventListener("click", async (ev) => {
+  const t = ev.target.closest("[data-act]");
+  if (!t || view !== "profiles") return;
+  const a = t.dataset.act;
+  if (a === "ppick") { pSel = t.dataset.id; await loadProfiles(true); drawProfiles(); }
+  else if (a === "psub") { pSub = t.dataset.v; if (pSub === "test" && !(P.tests || {}).testMode) await setTest({testMode: true, selected: (P.points[0] || {}).id}); else drawProfiles(); }
+  else if (a === "testmode") { const on = !(P.tests || {}).testMode; await setTest({testMode: on, selected: on ? ((P.tests || {}).selected || (P.points[0] || {}).id) : (P.tests || {}).selected}); if (on) { pSub = "test"; drawProfiles(); } }
+  else if (a === "ppoint" || a === "ptest") { pSub = "test"; await setTest({testMode: true, selected: t.dataset.id}); }
+  else if (a === "pnext" || a === "pprev") { const pts = P.points, i = pts.findIndex((p) => p.id === P.tests.selected); const j = i + (a === "pnext" ? 1 : -1); if (j >= pts.length) await setTest({testMode: false}); else if (j >= 0) await setTest({selected: pts[j].id}); }
+  else if (a === "nudge") nudge(+t.dataset.axis, +t.dataset.dir);
+  else if (a === "pstep") { pStep = +t.dataset.v; drawProfiles(); }
+  else if (a === "rescan") { await api("/api/airframes/scan", {}); setTimeout(() => loadProfiles(true).then(drawProfiles), 1500); }
+  else if (a === "pdup") { const n = prompt("Name for the copy:", profName(pSel) + " (mine)"); if (n) { await api("/api/profile/duplicate", {ID: pSel, Name: n}); setTimeout(() => loadProfiles(true).then(drawProfiles), 2500); } }
+  else if (a === "preset-prof") { if (confirm("Undo every change you've made to this profile?")) { await api("/api/profile/reset", {ID: pSel}); await loadProfiles(true); drawProfiles(); } }
+});
+document.addEventListener("change", async (ev) => {
+  const t = ev.target, a = t.dataset && t.dataset.act;
+  if (view !== "profiles") return;
+  if (a === "assign") { await api("/api/assign", {Title: t.dataset.title, Profile: t.value}); await loadProfiles(true); drawProfiles(); refresh(false); }
+  else if (a === "pset") { await api("/api/point", {Profile: pSel, ID: t.dataset.id, Axis: +t.dataset.axis, Delta: 0, Set: parseFloat(t.value)}); await loadProfiles(true); t.blur(); drawProfiles(); }
+  else if (a === "ponly") { pOnly = t.checked; drawProfiles(); }
+});
+document.addEventListener("input", (ev) => { if (ev.target.id === "pfilter") { pFilter = ev.target.value; drawAirframes(); } });
 
 refresh(true).then(schedule);
 </script>
