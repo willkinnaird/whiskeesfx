@@ -490,6 +490,37 @@ func routes() *http.ServeMux {
 		app.mu.Unlock()
 		return nil
 	})
+	post("/api/ignore", func(r *http.Request) error {
+		var b struct {
+			Text   string
+			On     bool
+			Remove bool
+		}
+		if !readBody(r, &b) || strings.TrimSpace(b.Text) == "" {
+			return errf("type a word to hide, for example FSLTL")
+		}
+		app.mu.Lock()
+		defer app.mu.Unlock()
+		txt := strings.TrimSpace(b.Text)
+		var out []IgnoreRule
+		found := false
+		for _, r := range app.cfg.Ignore {
+			if strings.EqualFold(r.Text, txt) {
+				found = true
+				if b.Remove {
+					continue
+				}
+				r.On = b.On
+			}
+			out = append(out, r)
+		}
+		if !found && !b.Remove {
+			out = append(out, IgnoreRule{txt, true})
+		}
+		app.cfg.Ignore = out
+		app.saveConfig()
+		return nil
+	})
 	post("/api/bake", func(r *http.Request) error {
 		app.mu.Lock()
 		defer app.mu.Unlock()
@@ -545,6 +576,7 @@ type AirframeView struct {
 	Profile string `json:"profile"`
 	How     string `json:"how"` // auto, assigned, none
 	Loaded  bool   `json:"loaded"`
+	Hidden  bool   `json:"hidden"`
 }
 
 // profilesView: everything the Profiles tab shows; id picks the profile being edited ("" = the one in use).
@@ -563,7 +595,7 @@ func (a *App) profilesView(id string) map[string]any {
 			return
 		}
 		titles[t] = true
-		av := AirframeView{Title: t, Package: pkg, Loaded: t == a.title, How: "auto"}
+		av := AirframeView{Title: t, Package: pkg, Loaded: t == a.title, How: "auto", Hidden: t != a.title && a.ignored(t, pkg)}
 		if pid := a.cfg.Assign[t]; pid != "" && a.profileByID(pid) != nil {
 			av.Profile, av.How = pid, "assigned"
 		} else if p := pickProfile(a.profiles, t); p != nil {
@@ -586,7 +618,7 @@ func (a *App) profilesView(id string) map[string]any {
 	for _, p := range a.profiles {
 		it := ProfileListItem{ID: p.ID, Name: p.Name, User: p.User, Generic: p.Generic, Active: a.active == p, Changed: changed[p.ID]}
 		for _, av := range list {
-			if av.Profile == p.ID {
+			if av.Profile == p.ID && !av.Hidden {
 				it.Airframes = append(it.Airframes, av.Title)
 			}
 		}
@@ -596,7 +628,13 @@ func (a *App) profilesView(id string) map[string]any {
 	if sel == nil {
 		sel = a.active
 	}
-	out := map[string]any{"profiles": profs, "airframes": list, "scanning": busy, "scanned": !scanned.IsZero(), "title": a.title, "tests": a.tests}
+	hidden := 0
+	for _, av := range list {
+		if av.Hidden {
+			hidden++
+		}
+	}
+	out := map[string]any{"profiles": profs, "airframes": list, "ignore": a.cfg.Ignore, "hiddenCount": hidden, "scanning": busy, "scanned": !scanned.IsZero(), "title": a.title, "tests": a.tests}
 	if sel != nil {
 		if f := a.settingsFor(sel); f != nil {
 			out["selected"] = sel.ID

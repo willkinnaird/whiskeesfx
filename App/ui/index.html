@@ -135,7 +135,7 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
     <button role="tab" data-act="view" data-v="profiles" id="tabProf">Profiles</button>
   </div>
   <button class="btn acc hidden" id="updBtn" data-act="update">Update</button>
-  <button class="btn" data-act="ontop" id="pinBtn" title="Keep this window on top of the sim (works when MSFS runs windowed or borderless)">Pin on top</button>
+  <button class="btn" data-act="ontop" id="pinBtn" title="Keep this window on top of the sim (works when MSFS runs windowed or borderless)">Pin</button>
   <button class="btn" data-act="hide" id="hideBtn" title="The app keeps running in the system tray">Hide to tray</button>
 </header>
 <div id="banners"></div>
@@ -307,7 +307,7 @@ function render() {
   $("tabProf").classList.toggle("on", view === "profiles");
   $("hideBtn").classList.toggle("hidden", !s.settings.keepInTray);
   $("pinBtn").classList.toggle("ok", !!s.settings.onTop);
-  $("pinBtn").textContent = s.settings.onTop ? "Pinned on top" : "Pin on top";
+  $("pinBtn").textContent = s.settings.onTop ? "Pinned" : "Pin";
   const p = s.profile || {};
   paint("prof", `<span class="dot ${s.sim.fresh ? "playing" : ""}"></span><span class="muted">Aircraft</span><strong>${esc(p.name || "none")}</strong><span class="muted">· ${s.manualProfile ? "chosen by you" : "auto"}</span>`);
   const sim = s.sim, c = [];
@@ -563,32 +563,43 @@ function renderProfiles() {
   if (P) drawProfiles();
 }
 function drawProfiles() {
-  const sel = P.profiles.find((p) => p.id === pSel) || {};
+  const hiddenSel = pSel === "__hidden";
+  const sel = hiddenSel ? {id: "__hidden", name: "Hidden airframes", hidden: true} : (P.profiles.find((p) => p.id === pSel) || {});
+  const hiddenItem = `<button class="pitem ${pSel === "__hidden" ? "sel" : ""}" data-act="ppick" data-id="__hidden" style="margin-top:8px;border-top:1px solid var(--line);border-radius:0 0 10px 10px">
+    <span class="n">Hidden${pSel === "__hidden" ? '<span class="tag soft">FILTER</span>' : ""}</span><span class="small muted">${P.hiddenCount} airframe${P.hiddenCount === 1 ? "" : "s"} matching your ignore filters</span></button>`;
   paint("plist", P.profiles.map((p) => `<button class="pitem ${p.id === pSel ? "sel" : ""}" data-act="ppick" data-id="${esc(p.id)}">
     <span class="n">${esc(p.name)}${p.id === pSel && pOnly ? '<span class="tag soft">FILTER</span>' : ""}${p.active ? '<span class="tag">IN USE</span>' : ""}${p.changed ? '<span class="tag alt">EDITED</span>' : ""}</span>
-    <span class="small muted">${p.user ? "Yours" : p.generic ? "Fallback for anything unknown" : "Shipped"} · ${(p.airframes || []).length} airframe${(p.airframes || []).length === 1 ? "" : "s"}</span></button>`).join(""));
+    <span class="small muted">${p.user ? "Yours" : p.generic ? "Fallback for anything unknown" : "Shipped"} · ${(p.airframes || []).length} airframe${(p.airframes || []).length === 1 ? "" : "s"}</span></button>`).join("") + hiddenItem);
   $("pname").textContent = sel.name || "";
-  $("pkind").textContent = sel.user ? "Your profile" : sel.generic ? "Used for any aircraft without its own profile" : "Shipped profile · your changes are kept separately and survive updates";
+  $("pkind").textContent = sel.hidden ? "Not shown anywhere else. Switch a filter off or remove it to bring them back" : sel.user ? "Your profile" : sel.generic ? "Used for any aircraft without its own profile" : "Shipped profile · your changes are kept separately and survive updates";
   $("presetProfBtn").disabled = !sel.changed;
+  document.querySelectorAll('[data-act="pdup"],[data-act="preset-prof"],#psub').forEach((e) => e.classList.toggle("hidden", !!sel.hidden));
+  if (sel.hidden) pSub = "airframes";
   document.querySelectorAll("#psub button").forEach((b) => b.classList.toggle("on", b.dataset.v === pSub));
   if (pSub === "airframes") drawAirframes(); else if (pSub === "positions") drawPositions(sel); else drawTestView(sel);
   drawTestPanel(sel);
 }
 function drawAirframes() {
   const q = pFilter.toLowerCase();
-  const rows = P.airframes.filter((a) => (!q || a.title.toLowerCase().includes(q)) && (!pOnly || a.profile === pSel));
+  const hid = pSel === "__hidden";
+  const rows = P.airframes.filter((a) => (!q || a.title.toLowerCase().includes(q)) && (hid ? a.hidden : !a.hidden && (!pOnly || a.profile === pSel)));
   const opts = (a) => `<option value="">Automatic${a.how === "assigned" ? "" : " (" + esc(profName(a.profile)) + ")"}</option>` +
     P.profiles.map((p) => `<option value="${esc(p.id)}" ${a.how === "assigned" && a.profile === p.id ? "selected" : ""}>${esc(p.name)}</option>`).join("");
   const how = (a) => a.how === "assigned" ? '<span class="tag alt">assigned</span>' : a.how === "none" ? '<span class="tag alt">no profile</span>' : '<span class="tag soft">auto</span>';
-  const head = `<div class="row" style="flex-wrap:wrap"><div class="grow" style="display:flex;flex-direction:column"><strong style="font-size:16px">${pOnly ? "Airframes using " + esc(profName(pSel)) : "Your airframes"}</strong>
+  const head = `<div class="row" style="flex-wrap:wrap"><div class="grow" style="display:flex;flex-direction:column"><strong style="font-size:16px">${hid ? "Hidden airframes" : pOnly ? "Airframes using " + esc(profName(pSel)) : "Your airframes"}</strong>
       <span class="small muted">${P.scanning ? "Looking through your Community folder…" : pOnly ? `${rows.length} of ${P.airframes.length} · click the profile again to see them all` : "Every aircraft in your Community folder, and the profile each one uses."}</span></div>
       <label class="row small"><input type="checkbox" data-act="ponly" ${pOnly ? "checked" : ""}> Only this profile</label>
       <input class="search" style="width:200px" type="search" id="pfilter" placeholder="Find an aircraft" aria-label="Find an aircraft" value="${esc(pFilter)}">
-      <button class="btn small" data-act="rescan">Rescan</button></div>`;
+      <button class="btn small" data-act="rescan">Rescan</button></div>
+    <div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+      <div class="row"><strong class="grow" style="font-size:14px">Ignore filters</strong><span class="small muted">Hide AI traffic and anything you never fly. Matches the aircraft or package name.</span></div>
+      <div class="row" style="flex-wrap:wrap;gap:8px">${(P.ignore || []).map((r) => `<span class="chip" style="padding:4px 6px 4px 10px;gap:8px"><label class="row" style="gap:6px"><input type="checkbox" data-act="ign-on" data-t="${esc(r.text)}" ${r.on ? "checked" : ""}> ${esc(r.text)}</label><button class="bx" style="width:24px;height:24px;font-size:13px" data-act="ign-del" data-t="${esc(r.text)}" aria-label="Remove the ${esc(r.text)} filter">✕</button></span>`).join("")}
+        <span class="row" style="gap:6px"><input class="search" style="width:170px;padding:5px 10px" id="ignNew" placeholder="Add a filter, e.g. AIG" aria-label="New ignore filter"><button class="btn small" data-act="ign-add">Add</button></span></div>
+    </div>`;
   const list = rows.map((a) => `<div class="afrow ${a.loaded ? "now" : ""}"><div style="display:flex;flex-direction:column;min-width:0"><span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(a.title)}">${esc(a.title)}</span>
       <span class="small muted">${a.loaded ? '<span class="play">● Loaded now</span>' : esc(a.package || "")}</span></div>
       <select data-act="assign" data-title="${esc(a.title)}" aria-label="Profile for ${esc(a.title)}">${opts(a)}</select>${how(a)}</div>`).join("");
-  if (document.activeElement && document.activeElement.id === "pfilter") { paint("pafl", list); return; }
+  if (document.activeElement && (document.activeElement.id === "pfilter" || document.activeElement.id === "ignNew")) { paint("pafl", list); return; }
   paint("pbody", head + `<div class="card" style="padding:0;overflow:hidden"><div id="pafl">${list || '<div class="muted" style="padding:14px">No aircraft found yet.</div>'}</div></div>`);
   painted["pafl"] = list;
 }
@@ -676,7 +687,8 @@ document.addEventListener("click", async (ev) => {
   const a = t.dataset.act;
   if (a === "ppick") { // first click: this profile and only its airframes; same profile again: all airframes
     const id = t.dataset.id;
-    if (id === pSel && pOnly && pSub === "airframes") pOnly = false; else { pSel = id; pOnly = true; pSub = "airframes"; }
+    if (id === "__hidden" && pSel === "__hidden") { pSel = (P.profiles.find((p) => p.active) || P.profiles[0] || {}).id || ""; pOnly = false; }
+    else if (id === pSel && pOnly && pSub === "airframes") pOnly = false; else { pSel = id; pOnly = true; pSub = "airframes"; }
     await loadProfiles(true); drawProfiles();
   }
   else if (a === "psub") { pSub = t.dataset.v; if (pSub === "test" && !(P.tests || {}).testMode) await setTest({testMode: true, selected: (P.points[0] || {}).id}); else drawProfiles(); }
@@ -685,6 +697,8 @@ document.addEventListener("click", async (ev) => {
   else if (a === "pnext" || a === "pprev") { const pts = P.points, i = pts.findIndex((p) => p.id === P.tests.selected); const j = i + (a === "pnext" ? 1 : -1); if (j >= pts.length) await setTest({testMode: false}); else if (j >= 0) await setTest({selected: pts[j].id}); }
   else if (a === "nudge") nudge(+t.dataset.axis, +t.dataset.dir);
   else if (a === "pstep") { pStep = +t.dataset.v; drawProfiles(); }
+  else if (a === "ign-add") { const v = ($("ignNew").value || "").trim(); if (v) { await api("/api/ignore", {Text: v, On: true}); $("ignNew").value = ""; await loadProfiles(true); drawProfiles(); } }
+  else if (a === "ign-del") { await api("/api/ignore", {Text: t.dataset.t, Remove: true}); await loadProfiles(true); drawProfiles(); }
   else if (a === "rescan") { await api("/api/airframes/scan", {}); setTimeout(() => loadProfiles(true).then(drawProfiles), 1500); }
   else if (a === "pdup") { const n = prompt("Name for the copy:", profName(pSel) + " (mine)"); if (n) { await api("/api/profile/duplicate", {ID: pSel, Name: n}); setTimeout(() => loadProfiles(true).then(drawProfiles), 2500); } }
   else if (a === "preset-prof") { if (confirm("Undo every change you've made to this profile?")) { await api("/api/profile/reset", {ID: pSel}); await loadProfiles(true); drawProfiles(); } }
@@ -695,7 +709,9 @@ document.addEventListener("change", async (ev) => {
   if (a === "assign") { await api("/api/assign", {Title: t.dataset.title, Profile: t.value}); await loadProfiles(true); drawProfiles(); refresh(false); }
   else if (a === "pset") { await api("/api/point", {Profile: pSel, ID: t.dataset.id, Axis: +t.dataset.axis, Delta: 0, Set: parseFloat(t.value)}); await loadProfiles(true); t.blur(); drawProfiles(); }
   else if (a === "ponly") { pOnly = t.checked; drawProfiles(); }
+  else if (a === "ign-on") { await api("/api/ignore", {Text: t.dataset.t, On: t.checked}); await loadProfiles(true); drawProfiles(); }
 });
+document.addEventListener("keydown", (ev) => { if (ev.target.id === "ignNew" && ev.key === "Enter") { ev.preventDefault(); document.querySelector('[data-act="ign-add"]').click(); } });
 document.addEventListener("input", (ev) => { if (ev.target.id === "pfilter") { pFilter = ev.target.value; drawAirframes(); } });
 
 refresh(true).then(schedule);

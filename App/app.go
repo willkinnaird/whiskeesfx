@@ -40,6 +40,8 @@ type Config struct {
 	ManualProfile string                   `json:"manualProfile"` // "" = automatic
 	Assign        map[string]string        `json:"assign"`        // aircraft title -> profile id, chosen by you
 	Dismissed     map[string]bool          `json:"dismissed"`     // notices closed with their X
+	Ignore        []IgnoreRule             `json:"ignore"`        // airframes to hide from the Profiles tab (AI traffic etc.)
+	IgnoreSeeded  bool                     `json:"ignoreSeeded"`
 	View          string                   `json:"view"`
 	Theme         string                   `json:"theme"` // auto, light, dark
 	Welcomed      bool                     `json:"welcomed"`
@@ -47,6 +49,23 @@ type Config struct {
 	KeepInTray    bool                     `json:"keepInTray"`
 	AutoUpdate    bool                     `json:"autoUpdate"`
 	DevMode       bool                     `json:"devMode"`
+}
+
+type IgnoreRule struct {
+	Text string `json:"text"`
+	On   bool   `json:"on"`
+}
+
+// ignored: an airframe whose title or package contains any switched-on rule.
+func (a *App) ignored(title, pkg string) bool {
+	t, p := strings.ToLower(title), strings.ToLower(pkg)
+	for _, r := range a.cfg.Ignore {
+		w := strings.ToLower(strings.TrimSpace(r.Text))
+		if r.On && w != "" && (strings.Contains(t, w) || strings.Contains(p, w)) {
+			return true
+		}
+	}
+	return false
 }
 
 type Tests struct {
@@ -168,6 +187,10 @@ func (a *App) load() {
 	}
 	if a.cfg.Dismissed == nil {
 		a.cfg.Dismissed = map[string]bool{}
+	}
+	if !a.cfg.IgnoreSeeded { // AI traffic packages are full of aircraft titles nobody flies
+		a.cfg.Ignore = append(a.cfg.Ignore, IgnoreRule{"FSLTL", true}, IgnoreRule{"FSTraffic", true})
+		a.cfg.IgnoreSeeded = true
 	}
 	if a.cfg.Repo == "" {
 		a.cfg.Repo = defaultRepo
