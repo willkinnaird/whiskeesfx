@@ -138,6 +138,7 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
   <button class="btn" data-act="ontop" id="pinBtn" title="Keep this window on top of the sim (works when MSFS runs windowed or borderless)">Pin</button>
   <button class="btn" data-act="hide" id="hideBtn" title="The app keeps running in the system tray">Hide to tray</button>
 </header>
+<div id="uiErr" class="banner hidden" role="alert"></div>
 <div id="banners"></div>
 
 <!-- BASIC -->
@@ -272,7 +273,9 @@ async function refresh(full) {
     const s = await api("/api/state" + (wantFull ? "?full=1" : ""));
     if (s.effects) { effects = s.effects; lastFull = Date.now(); }
     S = s;
-    render();
+    s.groups = s.groups || []; s.profiles = s.profiles || []; s.states = s.states || {};
+    try { render(); $("uiErr").classList.add("hidden"); }
+    catch (e) { $("uiErr").textContent = "Something in this window went wrong (" + e.message + "). Your effects are fine. Restart the app from the tray; if it keeps happening, tell Will."; $("uiErr").classList.remove("hidden"); console.error(e); }
   } catch (e) { /* app closing */ }
   busy = false;
 }
@@ -321,13 +324,13 @@ function render() {
   if (s.master.off) c.push(`<span class="chip warn">All effects paused</span>`);
   paint("chips", c.join(""));
   const b = [];
+  const dis = s.dismissed || {}, x = (k) => `<button class="bx" data-act="dismiss" data-k="${esc(k)}" aria-label="Close this notice" title="Close">✕</button>`;
   if (s.paused) b.push(`<div class="banner"><span class="grow">${esc(s.message)}</span><button class="btn small" data-act="resume">Resume</button></div>`);
   else if (s.message && !dis["msg:" + s.message]) b.push(`<div class="banner"><span class="grow">${esc(s.message)}</span>${x("msg:" + s.message)}</div>`);
   const un = s.update || {};
   if ((un.appNew || un.dataNew) && !un.busy && !dis["update:" + un.latest]) b.push(`<div class="banner"><div class="grow" style="display:flex;flex-direction:column;gap:4px"><strong>WhiskeesFX ${esc(un.latest)} is ready</strong><span class="notes small">${esc(un.notes || "")}</span></div><button class="btn small ok" data-act="update">Update now</button>${x("update:" + un.latest)}</div>`);
   if (s.tests.testMode) b.push(`<div class="banner"><span class="grow"><strong>Test mode is on.</strong> Position dots are showing in the sim and every effect is paused.</span><button class="btn small" data-act="leave-test">Leave test mode</button></div>`);
   if (s.progress && !dis["p:" + s.progress]) b.push(`<div class="banner"><span class="grow">${esc(s.progress)}</span>${x("p:" + s.progress)}</div>`);
-  const dis = s.dismissed || {}, x = (k) => `<button class="bx" data-act="dismiss" data-k="${esc(k)}" aria-label="Close this notice" title="Close">✕</button>`;
   if (p.generic && s.title && !dis["generic:" + s.title]) b.push(`<div class="banner"><span class="grow">No profile for “${esc(s.title)}” yet: using the generic one (the sim's standard N1, A321 positions).</span><button class="btn small" data-act="newprofile">New profile for this aircraft</button><button class="btn small" data-act="view" data-v="profiles">Assign a profile</button>${x("generic:" + s.title)}</div>`);
   paint("banners", b.join(""));
   const u = s.update || {};
