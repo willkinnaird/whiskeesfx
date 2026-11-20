@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>WhiskeesFX</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22256%22%20height%3D%22256%22%20viewBox%3D%220%200%20256%20256%22%3E%3Crect%20x%3D%228%22%20y%3D%228%22%20width%3D%22240%22%20height%3D%22240%22%20rx%3D%2256%22%20fill%3D%22%231F5FD1%22/%3E%0A%3Cpath%20d%3D%22M128%2030%20C128%2030%20196%20110%20196%20156%20C196%20194%20165%20224%20128%20224%20C91%20224%2060%20194%2060%20156%20C60%20110%20128%2030%20128%2030%20Z%22%20fill%3D%22%23FFFFFF%22/%3E%0A%3Cpath%20d%3D%22M128%2092%20C133%2092%20135%20100%20135%20108%20L135%20140%20L170%20160%20L170%20170%20L135%20160%20L134%20186%20L146%20196%20L146%20203%20L128%20198%20L110%20203%20L110%20196%20L122%20186%20L121%20160%20L86%20170%20L86%20160%20L121%20140%20L121%20108%20C121%20100%20123%2092%20128%2092%20Z%22%20fill%3D%22%230E1116%22/%3E%3C/svg%3E">
 <style>
 /* Plain, flat styling on purpose: no animations, blur, shadows or web fonts, so the window costs almost nothing to draw. */
 :root{--bg:#0E1116;--panel:#161B22;--side:#12161C;--line:#262D36;--line2:#2E3A48;--text:#E6EAF0;--muted:#9AA4B2;--dim:#8D97A5;--acc:#F2A93B;--ok:#3FB27F;--bad:#E5534B;--blue:#8CC8FF}
@@ -16,7 +17,6 @@ input[type=range]{accent-color:var(--acc);width:100%;margin:0}
 input[type=checkbox]{accent-color:var(--acc);width:18px;height:18px}
 header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--side)}
 .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
-.logo i{width:28px;height:28px;border-radius:8px;background:var(--acc);display:inline-block}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;background:#262D36;color:#C9D1DB;font-size:12px;white-space:nowrap}
 .chip.blue{background:#13304A;color:var(--blue)}.chip.green{background:#1E2A22;color:#8FD9B3}.chip.warn{background:#3A2A12;color:#FFC56B}
 .pill{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;background:#1C2530;border:1px solid var(--line2);font-size:13px}
@@ -75,7 +75,9 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
 </head>
 <body>
 <header>
-  <div class="logo"><i aria-hidden="true"></i>WhiskeesFX</div>
+  <div class="logo"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" aria-hidden="true" viewBox="0 0 256 256"><rect x="8" y="8" width="240" height="240" rx="56" fill="#1F5FD1"/>
+<path d="M128 30 C128 30 196 110 196 156 C196 194 165 224 128 224 C91 224 60 194 60 156 C60 110 128 30 128 30 Z" fill="#FFFFFF"/>
+<path d="M128 92 C133 92 135 100 135 108 L135 140 L170 160 L170 170 L135 160 L134 186 L146 196 L146 203 L128 198 L110 203 L110 196 L122 186 L121 160 L86 170 L86 160 L121 140 L121 108 C121 100 123 92 128 92 Z" fill="#0E1116"/></svg>WhiskeesFX</div>
   <span class="pill" id="prof"><span class="dot"></span><span class="muted">Aircraft</span><strong>…</strong></span>
   <span id="chips" style="display:flex;flex-wrap:wrap;gap:6px"></span>
   <span class="grow"></span>

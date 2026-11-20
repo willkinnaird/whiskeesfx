@@ -24,7 +24,7 @@ import (
 )
 
 var defaultRepo = "willkinnaird/whiskeesfx" // set at build time with -ldflags "-X main.defaultRepo=owner/name"
-var version = "dev"                       // set at build time
+var version = "dev"                         // set at build time
 
 type Release struct {
 	Tag    string `json:"tag_name"`

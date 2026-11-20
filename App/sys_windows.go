@@ -181,6 +181,8 @@ var (
 	pFindWindowW            = user32.NewProc("FindWindowW")
 	pShowWindow             = user32.NewProc("ShowWindow")
 	pIsIconic               = user32.NewProc("IsIconic")
+	pLoadImageW             = user32.NewProc("LoadImageW")
+	pGetSystemMetrics       = user32.NewProc("GetSystemMetrics")
 	pGetModuleHandleW       = kernel32.NewProc("GetModuleHandleW")
 )
 
@@ -288,6 +290,14 @@ func makeIcon(hInst uintptr) uintptr {
 		}
 	}
 	h, _, _ := pCreateIcon.Call(hInst, n, n, 1, 32, uintptr(unsafe.Pointer(&and[0])), uintptr(unsafe.Pointer(&xor[0])))
+	return h
+}
+
+// loadAppIcon takes the icon built into the exe (resource 1) at the tray's size for this screen's scaling.
+func loadAppIcon(hInst uintptr) uintptr {
+	cx, _, _ := pGetSystemMetrics.Call(49) // SM_CXSMICON
+	cy, _, _ := pGetSystemMetrics.Call(50) // SM_CYSMICON
+	h, _, _ := pLoadImageW.Call(hInst, 1, 1 /* IMAGE_ICON */, cx, cy, 0)
 	return h
 }
 
@@ -406,7 +416,10 @@ func runTray(menu TrayMenu) {
 		select {} // no tray possible: keep serving
 	}
 	taskbarMsg, _, _ = pRegisterWindowMessageW.Call(uintptr(unsafe.Pointer(u16("TaskbarCreated"))))
-	trayIcon = makeIcon(hInst)
+	trayIcon = loadAppIcon(hInst)
+	if trayIcon == 0 {
+		trayIcon = makeIcon(hInst)
+	}
 	trayAdd()
 	trayStarted = true
 	var mm msg
