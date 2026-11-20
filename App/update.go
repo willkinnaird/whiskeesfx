@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-var defaultRepo = "whiskeesfx/whiskeesfx" // set at build time with -ldflags "-X main.defaultRepo=owner/name"
+var defaultRepo = "willkinnaird/whiskeesfx" // set at build time with -ldflags "-X main.defaultRepo=owner/name"
 var version = "dev"                       // set at build time
 
 type Release struct {
