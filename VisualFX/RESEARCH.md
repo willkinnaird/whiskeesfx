@@ -69,3 +69,15 @@ Vortex sources: FAA wake turbulence briefing https://www.faa.gov/sites/faa.gov/f
 - Wing vapour: thicker and faster than ours, and it flickers at random, each wing on its own.
   -> vapour faster (-65 m/s) and bigger; alpha x1.35 with a per-side flicker (0.1 to 1.1).
 Old values: VisualFX/visualfx_before_tube.ini.
+
+## Vortex close-up (user screenshot, 20 Nov late)
+- The rope looks like stacked circles: a hollow tube. Condensation forms a thin shell around the low-pressure core,
+  so the edges (seen edge-on through more vapour) are bright and the middle is fainter.
+- Beaded: swells and thins every few metres; already kinked right behind the winglet; thins further back, then
+  curls into a ring at the end and fades out dark and thin.
+- In the ini now: gm_size pulses ~8 Hz (+-30%) on vortex and vortex_near (beads); vortex_near has a small kink
+  in dir_y (was 0). Still 16 dials.
+- Needs the editor: `VisualFX/textures/WFX_Ring.png` (256 px soft ring, white RGB, alpha ring) as the particle
+  texture for a WFX_Ring material/effect. Camera-facing rings in a dense chain at low alpha (~0.1 each) read as
+  a hollow beaded tube from any angle (see WFX_Ring_rope_mock.png). Do it in the same Dev Mode session as the
+  heat-shimmer material fix (purple dots = missing material).
