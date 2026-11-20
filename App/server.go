@@ -96,7 +96,7 @@ func (a *App) state(full bool) map[string]any {
 		"groups": a.groupViews(evs), "master": master, "tests": a.tests, "paused": a.paused, "message": a.message,
 		"progress": getProgress(), "update": getUpdate(), "devMode": a.cfg.DevMode, "tweaks": len(a.cfg.Tweaks),
 		"settings": map[string]any{
-			"keepInTray": a.cfg.KeepInTray, "autoUpdate": a.cfg.AutoUpdate, "startWithWindows": a.startsWin,
+			"theme": themeOr(a.cfg.Theme), "keepInTray": a.cfg.KeepInTray, "autoUpdate": a.cfg.AutoUpdate, "startWithWindows": a.startsWin,
 			"sourceIni": a.sourcePath(), "workDir": a.cfg.WorkDir, "community": a.cfg.Community, "repo": a.cfg.Repo,
 			"pkgModule":  installedPackageVersion(a.cfg.Community, "whiskeesfx-visualfx"),
 			"pkgEffects": installedPackageVersion(a.cfg.Community, "whiskeesfx-visualfx-effects"),
@@ -284,6 +284,9 @@ func routes() *http.ServeMux {
 		if v, ok := b["view"].(string); ok && (v == "basic" || v == "advanced") {
 			app.cfg.View = v
 		}
+		if v, ok := b["theme"].(string); ok && (v == "auto" || v == "light" || v == "dark") {
+			app.cfg.Theme = v
+		}
 		if v, ok := b["keepInTray"].(bool); ok {
 			app.cfg.KeepInTray = v
 		}
@@ -357,3 +360,10 @@ type strErr string
 
 func (e strErr) Error() string { return string(e) }
 func errf(s string) error      { return strErr(s) }
+
+func themeOr(t string) string {
+	if t == "" {
+		return "auto"
+	}
+	return t
+}

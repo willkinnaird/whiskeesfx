@@ -6,71 +6,79 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22256%22%20height%3D%22256%22%20viewBox%3D%220%200%20256%20256%22%3E%3Crect%20x%3D%228%22%20y%3D%228%22%20width%3D%22240%22%20height%3D%22240%22%20rx%3D%2256%22%20fill%3D%22%231F5FD1%22/%3E%0A%3Cpath%20d%3D%22M128%2030%20C128%2030%20196%20110%20196%20156%20C196%20194%20165%20224%20128%20224%20C91%20224%2060%20194%2060%20156%20C60%20110%20128%2030%20128%2030%20Z%22%20fill%3D%22%23FFFFFF%22/%3E%0A%3Cpath%20d%3D%22M128%2092%20C133%2092%20135%20100%20135%20108%20L135%20140%20L170%20160%20L170%20170%20L135%20160%20L134%20186%20L146%20196%20L146%20203%20L128%20198%20L110%20203%20L110%20196%20L122%20186%20L121%20160%20L86%20170%20L86%20160%20L121%20140%20L121%20108%20C121%20100%20123%2092%20128%2092%20Z%22%20fill%3D%22%230E1116%22/%3E%3C/svg%3E">
 <style>
-/* Plain, flat styling on purpose: no animations, blur, shadows or web fonts, so the window costs almost nothing to draw. */
-:root{--bg:#0E1116;--panel:#161B22;--side:#12161C;--line:#262D36;--line2:#2E3A48;--text:#E6EAF0;--muted:#9AA4B2;--dim:#8D97A5;--acc:#F2A93B;--ok:#3FB27F;--bad:#E5534B;--blue:#8CC8FF}
+/* Sage & Sand, light and dark. Plain, flat styling on purpose: no animations, blur or shadows, so the window costs almost nothing to draw. */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+:root{--bg:#F4F1EA;--panel:#FFFDF8;--side:#EFEBE2;--line:#E2DCCF;--line2:#D6CFBF;--hover:#EAE5DA;--sel:#E4EDE7;--text:#1F2A24;--muted:#5E6B63;--dim:#6F7A72;
+  --acc:#2F5D4A;--acc2:#B4552F;--onacc:#FFFDF8;--ok:#3E8E66;--bad:#B93B2B;--chip:#EAE5DA;--chiptext:#3A463F;--wetbg:#F6E3D9;--wettext:#8A3E1F;--humbg:#DDEBE2;--humtext:#24503D;
+  --warnbg:#F6E3D9;--warntext:#7A3418;--idle:#B9B2A3;--twborder:#C8643B;color-scheme:light}
+html[data-theme=dark]{--bg:#131A16;--panel:#1B241F;--side:#161E1A;--line:#2C3A32;--line2:#36463D;--hover:#202B25;--sel:#25332B;--text:#EFEADF;--muted:#A4AE9F;--dim:#929C8D;
+  --acc:#8CC4A6;--acc2:#E07B52;--onacc:#131A16;--ok:#8CC4A6;--bad:#E5735B;--chip:#222C26;--chiptext:#D6D2C7;--wetbg:#3A2419;--wettext:#F0A585;--humbg:#1F3329;--humtext:#A9D6BE;
+  --warnbg:#3A2419;--warntext:#F0B497;--idle:#4B584F;--twborder:#E07B52;color-scheme:dark}
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
+html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Manrope,"Segoe UI",system-ui,sans-serif}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 input[type=range]{accent-color:var(--acc);width:100%;margin:0}
 input[type=checkbox]{accent-color:var(--acc);width:18px;height:18px}
-header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--side)}
-.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
-.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;background:#262D36;color:#C9D1DB;font-size:12px;white-space:nowrap}
-.chip.blue{background:#13304A;color:var(--blue)}.chip.green{background:#1E2A22;color:#8FD9B3}.chip.warn{background:#3A2A12;color:#FFC56B}
-.pill{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;background:#1C2530;border:1px solid var(--line2);font-size:13px}
-.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:#4A5563}
-.dot.playing{background:var(--ok)}.dot.failed{background:var(--bad)}.dot.off{background:#2A313B;border:1px solid #4A5563}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.3px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;background:var(--chip);color:var(--chiptext);font-size:12px;white-space:nowrap}
+.chip.blue{background:var(--wetbg);color:var(--wettext)}.chip.green{background:var(--humbg);color:var(--humtext)}.chip.warn{background:var(--warnbg);color:var(--warntext)}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;background:var(--bg);border:1px solid var(--line2);font-size:13px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--idle)}
+.dot.playing{background:var(--ok)}.dot.failed{background:var(--bad)}.dot.off{background:transparent;border:1px solid var(--idle)}
 .grow{flex-grow:1}
-.btn{padding:8px 14px;border-radius:8px;border:1px solid var(--line2);background:#1C2530;min-height:36px}
-.btn:hover{background:#232B36}
-.btn.acc{border-color:var(--acc);color:var(--acc);background:transparent}
-.btn.ok{background:var(--ok);border-color:var(--ok);color:#0E1116;font-weight:600}
+.btn{padding:8px 14px;border-radius:8px;border:1px solid var(--line2);background:var(--panel);min-height:36px}
+.btn:hover{background:var(--hover)}
+.btn.acc{border-color:var(--acc2);color:var(--acc2);background:transparent;font-weight:600}
+.btn.ok{background:var(--acc);border-color:var(--acc);color:var(--onacc);font-weight:600}
 .btn.small{padding:5px 10px;min-height:30px;font-size:12px}
+.btn[disabled]{opacity:.5;cursor:default}
 .seg{display:flex;gap:3px;background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:3px}
-.seg button{flex:1 1 0;border:0;background:transparent;border-radius:6px;padding:6px 8px;min-height:30px;font-size:12px;color:#C9D1DB}
-.seg button.on{background:var(--acc);color:#0E1116;font-weight:600}
-.tabs{display:flex;gap:4px}
-.tabs button{border:1px solid var(--line2);background:transparent;border-radius:8px;padding:6px 12px;min-height:32px}
-.tabs button.on{background:#232B36;border-color:var(--acc);color:#fff}
-.banner{margin:12px 20px 0;padding:10px 14px;border-radius:8px;background:#3A2A12;color:#FFDDA0;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
-h2{margin:0 0 10px;font-size:15px}
-.label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--dim)}
+.seg button{flex:1 1 0;border:0;background:transparent;border-radius:6px;padding:6px 8px;min-height:30px;font-size:12px;color:var(--muted)}
+.seg button.on{background:var(--acc);color:var(--onacc);font-weight:700}
+.tabs{display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+.tabs button{border:0;background:transparent;border-radius:8px;padding:6px 14px;min-height:32px;color:var(--muted)}
+.tabs button.on{background:var(--acc);color:var(--onacc);font-weight:700}
+.banner{margin:12px 20px 0;padding:10px 14px;border-radius:8px;background:var(--warnbg);color:var(--warntext);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+h2{margin:0 0 10px;font-size:15px;font-weight:700}
+.label{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--dim)}
 .muted{color:var(--muted)}.small{font-size:12px}
 .mono{font-family:Consolas,"Cascadia Mono",monospace}
+.play{color:var(--ok);font-weight:600}
 /* basic */
 #basic{padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;max-width:1300px}
 .grp{display:flex;flex-direction:column;gap:10px}
 .row{display:flex;align-items:center;gap:10px}
-.switch{position:relative;width:44px;height:24px;border-radius:12px;border:0;background:#2E3A48;padding:0;flex-shrink:0}
-.switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#C9D1DB}
-.switch.on{background:var(--ok)}.switch.on::after{left:23px;background:#fff}
+.switch{position:relative;width:44px;height:24px;border-radius:12px;border:0;background:var(--line2);padding:0;flex-shrink:0}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--panel)}
+.switch.on{background:var(--acc)}.switch.on::after{left:23px;background:var(--onacc)}
 /* advanced */
 #adv{display:flex;flex-wrap:wrap;min-height:calc(100vh - 60px)}
-#adv nav{flex:1 1 250px;max-width:290px;overflow-x:hidden;border-right:1px solid var(--line);background:var(--side);padding:14px;display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 60px);overflow:auto}
+#adv nav{flex:1 1 250px;max-width:290px;overflow-x:hidden;border-right:1px solid var(--line);background:var(--side);padding:14px;display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 60px);overflow-y:auto}
 #adv main{flex:999 1 520px;min-width:0;padding:20px 24px;display:flex;flex-direction:column;gap:16px;max-height:calc(100vh - 60px);overflow:auto}
 #adv aside{flex:1 1 250px;max-width:300px;border-left:1px solid var(--line);background:var(--side);padding:16px;display:flex;flex-direction:column;gap:16px;max-height:calc(100vh - 60px);overflow:auto}
-.search{width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--line2);background:var(--bg)}
-.item{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:8px;font-size:13px;color:#C9D1DB;border:0;background:transparent;width:100%;text-align:left}
-.item:hover{background:#1A2029}
-.item.sel{background:#232B36;color:#fff;box-shadow:inset 2px 0 0 var(--acc)}
+.search{width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--line2);background:var(--panel)}
+.item{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:8px;font-size:13px;color:var(--text);border:0;background:transparent;width:100%;text-align:left}
+.item:hover{background:var(--hover)}
+.item.sel{background:var(--sel);box-shadow:inset 3px 0 0 var(--acc);font-weight:600}
 .item .st{font-size:11px;color:var(--dim);white-space:nowrap}
 .item .grow{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.item .tw{color:var(--acc);font-size:11px}
+.item .tw{color:var(--acc2);font-size:11px}
 .dials{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
 .dial{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
-.dial.tw{border-color:#5A4520}
+.dial.tw{border-color:var(--twborder)}
 .dial .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.dial .val{color:var(--acc2)}
 .dial input[type=text],.field input{width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--line2);background:var(--bg);font-family:Consolas,monospace;font-size:12px}
-.dial input.num{width:90px;text-align:right}
 .field{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}
 .fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
 .events{font-family:Consolas,monospace;font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
 select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:7px 10px}
 .hidden{display:none!important}
-.warnline{color:#FFC56B;font-size:12px}
+.warnline{color:var(--warntext);font-size:12px}
 </style>
 </head>
 <body>
@@ -119,6 +127,7 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
     <label class="row"><input type="checkbox" data-act="set" data-k="startWithWindows" id="sWin"> Start with Windows (in the tray)</label>
     <label class="row"><input type="checkbox" data-act="set" data-k="keepInTray" id="sTray"> Keep running in the tray when the window closes</label>
     <label class="row"><input type="checkbox" data-act="set" data-k="autoUpdate" id="sUpd"> Check for updates automatically</label>
+    <div class="field">Theme<div class="seg" id="themeSeg"><button data-act="theme" data-v="auto">Match Windows</button><button data-act="theme" data-v="light">Light</button><button data-act="theme" data-v="dark">Dark</button></div></div>
     <div class="small muted" id="verLine"></div>
     <div class="row"><button class="btn small" data-act="check">Check for updates</button><button class="btn small" data-act="quit">Quit WhiskeesFX</button></div>
   </div>
@@ -199,8 +208,19 @@ function schedule() {
 document.addEventListener("visibilitychange", () => { if (!document.hidden) { refresh(false); } schedule(); });
 
 // ---- rendering ---------------------------------------------------------------------------------
+const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+function applyTheme() {
+  const t = (S && S.settings.theme) || "auto";
+  const dark = t === "dark" || (t === "auto" && darkQuery.matches);
+  if (document.documentElement.dataset.theme !== (dark ? "dark" : "light")) document.documentElement.dataset.theme = dark ? "dark" : "light";
+  document.querySelectorAll("#themeSeg button").forEach((b) => b.classList.toggle("on", b.dataset.v === t));
+}
+darkQuery.addEventListener("change", applyTheme);
+document.documentElement.dataset.theme = darkQuery.matches ? "dark" : "light"; // until the saved choice arrives
+
 function render() {
   const s = S;
+  applyTheme();
   view = s.view || "basic";
   $("basic").classList.toggle("hidden", view !== "basic");
   $("adv").classList.toggle("hidden", view !== "advanced");
@@ -246,7 +266,7 @@ function renderBasic() {
     <div class="card grp">
       <div class="row"><h2 class="grow" style="margin:0">${esc(nice(g.name))}</h2>
         <button class="switch ${g.off ? "" : "on"}" data-act="group-off" data-g="${esc(g.name)}" aria-label="${esc(nice(g.name))} on or off"></button></div>
-      <div class="small muted">${g.count} effect${g.count === 1 ? "" : "s"}${g.playing ? ` · <span style="color:#8FD9B3">${g.playing} playing</span>` : ""}</div>
+      <div class="small muted">${g.count} effect${g.count === 1 ? "" : "s"}${g.playing ? ` · <span class="play">${g.playing} playing</span>` : ""}</div>
       <label class="field">Strength <span class="mono">${Math.round(g.strength * 100)}%</span>
         <input type="range" min="0" max="200" step="5" value="${Math.round(g.strength * 100)}" data-act="group-strength" data-g="${esc(g.name)}"></label>
     </div>`).join(""));
@@ -342,7 +362,7 @@ function renderDetail() {
       if (t) body += `<label class="small muted" style="display:flex;gap:8px;align-items:center">Overall ×<input type="range" min="0" max="${Math.max(1, t.n * 3)}" step="${Math.max(0.0005, t.n / 100).toPrecision(2)}" value="${t.n}" data-act="mul" data-sec="${esc(e.section)}" data-k="${esc(d.key)}" data-head="${esc(t.head)}" aria-label="${esc(lab)} multiplier"></label>`;
     }
     html += `<div class="dial ${d.tweaked ? "tw" : ""}"><div class="top"><span><strong>${esc(lab)}</strong>${own}</span>
-      <span class="mono small" style="color:var(--acc)">${isNum(d.value) ? esc(d.value) : (tailMul(d.value) ? "× " + tailMul(d.value).n : "formula")}</span></div>${body}
+      <span class="mono small val">${isNum(d.value) ? esc(d.value) : (tailMul(d.value) ? "× " + tailMul(d.value).n : "formula")}</span></div>${body}
       <div class="small muted mono">${esc(d.key)}</div></div>`;
   }
   html += `</div>`;
@@ -379,6 +399,7 @@ document.addEventListener("click", (ev) => {
   const a = t.dataset.act, sec = t.dataset.sec;
   switch (a) {
     case "view": post("/api/settings", {view: t.dataset.v}); break;
+    case "theme": post("/api/settings", {theme: t.dataset.v}); break;
     case "hide": api("/api/hide", {}); break;
     case "quit": if (confirm("Quit WhiskeesFX? Effects keep working with the last settings; aircraft profiles won't switch until it runs again.")) api("/api/quit", {}); break;
     case "update": post("/api/update/apply"); break;

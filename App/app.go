@@ -39,6 +39,7 @@ type Config struct {
 	Groups        map[string]*GroupSetting `json:"groups"`
 	ManualProfile string                   `json:"manualProfile"` // "" = automatic
 	View          string                   `json:"view"`
+	Theme         string                   `json:"theme"` // auto, light, dark
 	KeepInTray    bool                     `json:"keepInTray"`
 	AutoUpdate    bool                     `json:"autoUpdate"`
 	DevMode       bool                     `json:"devMode"`
