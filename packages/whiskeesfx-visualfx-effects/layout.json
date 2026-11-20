@@ -1,0 +1,74 @@
+{
+  "content": [
+    {
+      "path": "contentinfo/whiskeesfx-visualfx-effects/thumbnail.jpg",
+      "size": 5556,
+      "date": 134395215920000000
+    },
+    {
+      "path": "visualeffectlibs/whiskeesfx-visualfx/visualfx/genericmist.spb",
+      "size": 6948,
+      "date": 134395562160000002
+    },
+    {
+      "path": "visualeffectlibs/whiskeesfx-visualfx/visualfx/genericribbon.spb",
+      "size": 6588,
+      "date": 134395562160000002
+    },
+    {
+      "path": "visualeffectlibs/whiskeesfx-visualfx/visualfx/generictrail.spb",
+      "size": 6950,
+      "date": 134395562160000002
+    },
+    {
+      "path": "visualeffectlibs/whiskeesfx-visualfx/visualfx/marker.spb",
+      "size": 1576,
+      "date": 134395562160000002
+    },
+    {
+      "path": "visualeffectlibs/whiskeesfx-visualfx/visualfx/visualeffectlibrary.xml",
+      "size": 495,
+      "date": 134395562160000001
+    },
+    {
+      "path": "visualeffectlibs/whiskeesfx-visualfx/visualfx/wfx_droplets.spb",
+      "size": 16384,
+      "date": 134395562160000002
+    },
+    {
+      "path": "visualeffectlibs/whiskeesfx-visualfx/visualfx/wfx_dropletssafe.spb",
+      "size": 14788,
+      "date": 134395562160000002
+    },
+    {
+      "path": "visualeffectlibs/whiskeesfx-visualfx/visualfx/wfx_heathaze.spb",
+      "size": 2327,
+      "date": 134395562160000002
+    },
+    {
+      "path": "visualeffectlibs/whiskeesfx-visualfx/visualfx/wfx_mist.spb",
+      "size": 16376,
+      "date": 134395562160000002
+    },
+    {
+      "path": "visualeffectlibs/whiskeesfx-visualfx/visualfx/wfx_mistsafe.spb",
+      "size": 14780,
+      "date": 134395562160000002
+    },
+    {
+      "path": "visualeffectlibs/whiskeesfx-visualfx/visualfx/wfx_trail.spb",
+      "size": 16378,
+      "date": 134395562160000002
+    },
+    {
+      "path": "visualeffectlibs/whiskeesfx-visualfx/visualfx/wfx_trailsafe.spb",
+      "size": 14782,
+      "date": 134395562160000002
+    },
+    {
+      "path": "visualeffectlibs/whiskeesfx-visualfx/visualfx/wingwater.spb",
+      "size": 4823,
+      "date": 134395562160000002
+    }
+  ]
+}
