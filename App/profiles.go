@@ -110,8 +110,8 @@ func pickProfile(profiles []*Profile, title string) *Profile {
 	return generic
 }
 
-// matchScore: a match line is words joined by "&"; every word must be in the title (as a whole word,
-// or as written when it has spaces), and a word starting
+// matchScore: a match line is words joined by "&"; every word must be in the title (a plain word as a whole
+// word, anything with spaces or dashes as written), and a word starting
 // with "!" must not be ("FenixA320 & IAE & !SL"). The score is how many letters matched, so the most
 // specific profile wins.
 func matchScore(titleLower, match string) int {
@@ -128,7 +128,7 @@ func matchScore(titleLower, match string) int {
 			continue
 		}
 		found := false
-		if strings.Contains(w, " ") {
+		if !isAlnum(w) { // "737-800", "fenix a320": as written
 			found = strings.Contains(titleLower, w)
 		} else {
 			found = containsWord(titleLower, w)
@@ -222,4 +222,13 @@ func slug(s string) string {
 		}
 	}
 	return strings.Trim(b.String(), "-")
+}
+
+func isAlnum(w string) bool {
+	for _, r := range w {
+		if !((r >= 'a' && r <= 'z') || (r >= '0' && r <= '9')) {
+			return false
+		}
+	}
+	return true
 }
