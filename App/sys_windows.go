@@ -63,15 +63,22 @@ func openWindow(url string) {
 	if winCmd != nil {
 		// already open: bring that window forward instead of opening a second one
 		if h := findAppWindow(); h != 0 {
+			pShowWindow.Call(h, 5) // SW_SHOW: in case it was ever started hidden
 			if r, _, _ := pIsIconic.Call(h); r != 0 {
 				pShowWindow.Call(h, 9) // SW_RESTORE
 			}
 			pSetForegroundWindow.Call(h)
+			return
+		}
+		// Edge is running but its window isn't there (still starting, or closed oddly): ask for one again.
+		if e := edgePath(); e != "" {
+			startDetached(exec.Command(e, "--user-data-dir="+uiProfileDir(), "--app="+url))
 		}
 		return
 	}
 	if e := edgePath(); e != "" {
-		c := hiddenCmd(e,
+		// NOT hiddenCmd: its "hide window" start flag is passed on to Edge, which then opens its window hidden.
+		c := exec.Command(e,
 			"--app="+url,
 			"--user-data-dir="+uiProfileDir(),
 			"--window-size=1280,860",
@@ -97,7 +104,7 @@ func openWindow(url string) {
 			return
 		}
 	}
-	startDetached(hiddenCmd("rundll32", "url.dll,FileProtocolHandler", url))
+	startDetached(exec.Command("rundll32", "url.dll,FileProtocolHandler", url))
 }
 
 // startDetached starts a helper and waits for it in the background so its process handle is always released.
