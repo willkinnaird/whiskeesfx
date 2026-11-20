@@ -316,7 +316,7 @@ function render() {
   const sim = s.sim, c = [];
   if (!sim.fresh) c.push(`<span class="chip">Sim not running</span>`);
   else {
-    if (sim.wet) c.push(`<span class="chip blue">Wet runway ${Math.round(sim.water)}%</span>`);
+    if (sim.wet) c.push(`<span class="chip blue">Wet runway ${Math.round(sim.water)}%${sim.spray >= 0 ? ` · spray ${Math.round(sim.spray)}%` : ''}</span>`);
     if (sim.humid) c.push(`<span class="chip green">Humid</span>`);
     c.push(`<span class="chip">${sim.onGround ? "On ground" : Math.round(sim.agl) + " ft"} · ${Math.round(sim.gs)} kt</span>`);
     c.push(`<span class="chip">N1 ${sim.n1.toFixed(1)}%</span>`);

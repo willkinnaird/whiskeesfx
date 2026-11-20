@@ -6,6 +6,7 @@
 // effect to spawn, where on the aircraft, and under which conditions.
 // Status (what it sees, what's playing, recent events) goes to \work\status.txt.
 //
+// v13 (20 Nov 2026): spray scales with runway water (L:WFX_WET_CUT), seeded at wet_start when loading into rain.
 // v12 (19 Nov 2026): up to 256 effects, 48 dials per effect, a 512 KB settings file, and
 // [preset.NAME] sections: shared settings an effect pulls in with `preset = NAME`
 // (the effect's own lines always win, whatever order they're in).
@@ -59,6 +60,7 @@ struct Sim {
 	double visibility = 99999;
 	double n1[4] = {0}, rev[4] = {0};
 	double wetness = 0;       // our own runway-water model, 0..1
+	double wetScale = 1;      // spray strength from wetness (published as L:WFX_WET_CUT = 1 - this)
 	bool wet = false;          // final "wet" decision
 	bool touchdown = false;    // true for a short moment after the mains touch down
 	double touchdownTimer = 0;
@@ -106,6 +108,9 @@ struct Global {
 	double wetBuildMinutes = 3;   // how long heavy rain takes to make the runway fully wet
 	double dryMinutes = 30;       // how long it takes to dry after rain stops
 	double wetThreshold = 0.15;   // wetness above which effects count as "wet"
+	double wetScaleMin = 0.3;     // spray strength on a just-damp runway (1 = full)
+	double wetFull = 0.7;         // runway water at which spray is full strength
+	double wetStart = 0.5;        // runway water assumed if it's already raining / wet when the flight loads
 	double engineX = 5.75, engineY = -1.6, engineZ = 1.0;   // engine position (m from reference point), x mirrored
 	double mainX = 3.8, mainZ = 0.0, noseZ = 16.9, groundY = -3.0;
 	double touchdownSeconds = 1.5;
@@ -241,7 +246,7 @@ static void setGlobal(const char* key, const char* val) {
 	struct { const char* k; double* v; } keys[] = {
 		{"enabled", &G.enabled}, {"rain_counts_as_wet", &G.rainCountsAsWet},
 		{"humid_force", &G.humidForce}, {"humid_visibility", &G.humidVisibility},
-		{"wet_build_minutes", &G.wetBuildMinutes}, {"dry_minutes", &G.dryMinutes}, {"wet_threshold", &G.wetThreshold},
+		{"wet_build_minutes", &G.wetBuildMinutes}, {"dry_minutes", &G.dryMinutes}, {"wet_threshold", &G.wetThreshold}, {"wet_scale_min", &G.wetScaleMin}, {"wet_full", &G.wetFull}, {"wet_start", &G.wetStart},
 		{"engine_x", &G.engineX}, {"engine_y", &G.engineY}, {"engine_z", &G.engineZ},
 		{"main_gear_x", &G.mainX}, {"main_gear_z", &G.mainZ}, {"nose_gear_z", &G.noseZ}, {"ground_y", &G.groundY},
 		{"touchdown_seconds", &G.touchdownSeconds},
@@ -626,7 +631,22 @@ static void readSim(double dt) {
 	if (sim.simWet) rate = rate < 0.5 ? 0.5 : rate;
 	if (rate > 0) sim.wetness += dt / (60.0 * (G.wetBuildMinutes > 0.05 ? G.wetBuildMinutes : 0.05)) * rate;
 	else sim.wetness -= dt / (60.0 * (G.dryMinutes > 0.05 ? G.dryMinutes : 0.05));
+	static bool wetSeeded = false;   // loading into rain: assume it has been raining for a while
+	if (!wetSeeded && simTime > 3) { wetSeeded = true; if (sim.raining || sim.simWet) sim.wetness = sim.wetness > G.wetStart ? sim.wetness : G.wetStart; }
 	sim.wetness = clampd(sim.wetness, 0, 1);
+	// Spray strength from how wet the runway is, published for the effects as L:WFX_WET_CUT (how much to take
+	// off: 0 = full spray). Effects multiply by "1 (L:WFX_WET_CUT, Number) -", so an older module (L:var = 0)
+	// leaves them at full strength.
+	{
+		double span = G.wetFull - G.wetThreshold; if (span < 0.01) span = 0.01;
+		double t = clampd((sim.wetness - G.wetThreshold) / span, 0, 1);
+		t = t * t * (3 - 2 * t);
+		if (sim.simWet && t < 0.25) t = 0.25;
+		sim.wetScale = G.wetScaleMin + (1 - G.wetScaleMin) * t;
+		static int cutId = -1;
+		if (cutId < 0) cutId = (int)fsVarsRegisterLVar("WFX_WET_CUT");
+		if (cutId >= 0) fsVarsLVarSet(cutId, uNumber, 1 - sim.wetScale);
+	}
 	sim.wet = sim.hardSurface && (sim.simWet || sim.wetness > G.wetThreshold || (G.rainCountsAsWet > 0 && sim.raining));
 
 	// Touchdown detection.
@@ -651,12 +671,12 @@ static void writeStatus() {
 	int n = snprintf(buf, sizeof(buf),
 		"WhiskeesFX VisualFX status (rewritten every second)\n"
 		"frames=%lu  time=%.1fs  enabled=%.0f\n"
-		"wet=%d  runway water=%.0f%%  sim says wet=%d (surface condition %.0f)  raining=%d (precip %d, rate %.1f)  surface type %d (hard=%d)\n"
+		"wet=%d  runway water=%.0f%%  spray strength=%.0f%%  sim says wet=%d (surface condition %.0f)  raining=%d (precip %d, rate %.1f)  surface type %d (hard=%d)\n"
 		"humid=%d  (in cloud=%d, visibility %.0f m, humid_force %.0f)\n"
 		"on ground=%d  agl=%.1f ft  gs=%.1f kt  ias=%.1f kt  touchdown=%d  engines=%d\n"
 		"N1 %.1f / %.1f / %.1f / %.1f %%   reverser %.1f / %.1f / %.1f / %.1f %%\n"
 		"aircraft title: %s\nprofile in use: %s\n",
-		frames, simTime, G.enabled, sim.wet, sim.wetness * 100, sim.simWet, sim.surfCond, sim.raining, sim.precip, sim.precipRate,
+		frames, simTime, G.enabled, sim.wet, sim.wetness * 100, sim.wetScale * 100, sim.simWet, sim.surfCond, sim.raining, sim.precip, sim.precipRate,
 		sim.surfType, sim.hardSurface, sim.humid, sim.inCloud, sim.visibility, G.humidForce, sim.onGround, sim.agl, sim.gs, sim.ias, sim.touchdown, sim.nEng,
 		sim.n1[0], sim.n1[1], sim.n1[2], sim.n1[3], sim.rev[0], sim.rev[1], sim.rev[2], sim.rev[3],
 		title[0] ? title : "(not read)", profileName[0] ? profileName : "(none - using the general settings)");

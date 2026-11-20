@@ -22,6 +22,7 @@ type SimStatus struct {
 	Title    string                  `json:"title"`
 	Wet      bool                    `json:"wet"`
 	Water    float64                 `json:"water"`
+	Spray    float64                 `json:"spray"` // spray strength from runway water, -1 on modules before v13
 	Humid    bool                    `json:"humid"`
 	Raining  bool                    `json:"raining"`
 	OnGround bool                    `json:"onGround"`
@@ -42,6 +43,7 @@ var reNum = func(key string) *regexp.Regexp {
 var (
 	reWet      = reNum("wet=")
 	reWater    = reNum("runway water=")
+	reSpray    = reNum("spray strength=")
 	reHumid    = reNum("humid=")
 	reRaining  = reNum("raining=")
 	reGround   = reNum("on ground=")
@@ -128,6 +130,10 @@ func readStatus(path string) SimStatus {
 	h := strings.Join(head, "\n")
 	st.Wet = numOf(reWet, h) > 0
 	st.Water = numOf(reWater, h)
+	st.Spray = -1
+	if reSpray.MatchString(h) {
+		st.Spray = numOf(reSpray, h)
+	}
 	st.Humid = numOf(reHumid, h) > 0
 	st.Raining = numOf(reRaining, h) > 0
 	st.OnGround = numOf(reGround, h) > 0
