@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<SimBase.Document Type="EditionInfo" version="1,0" id="Marker_edition">
+    <Descr>This file contains useful additional properties for edition purpose.</Descr>
+    <SimEdition.EditionInfo RelatedInstanceId="{6B1E0C52-3A7D-4F0E-9C2B-5D8E1A4F7C10}">
+        <NodePosition>372.000,-48.000</NodePosition>
+    </SimEdition.EditionInfo>
+    <SimEdition.EditionInfo RelatedInstanceId="{2E843B6D-861E-444B-966D-A5284FF11422}">
+        <NodePosition>273.000,40.000</NodePosition>
+    </SimEdition.EditionInfo>
+    <SimEdition.EditionInfo RelatedInstanceId="{7F787120-C63D-4426-9D7D-90AAEACD15A5}">
+        <NodePosition>312.000,300.000</NodePosition>
+    </SimEdition.EditionInfo>
+    <SimEdition.EditionInfo RelatedInstanceId="{FA8447A1-02A4-4100-8D8B-9176F1D7D729}">
+        <NodePosition>394.000,460.000</NodePosition>
+    </SimEdition.EditionInfo>
+    <SimEdition.EditionInfo RelatedInstanceId="{D868D827-FCCD-49C6-9C65-42CE85F75FFE}">
+        <NodePosition>312.000,560.000</NodePosition>
+    </SimEdition.EditionInfo>
+    <SimEdition.EditionInfo RelatedInstanceId="{5C53BA20-8578-4DA4-A611-C38FBA8479A7}">
+        <NodePosition>40.000,580.000</NodePosition>
+    </SimEdition.EditionInfo>
+</SimBase.Document>

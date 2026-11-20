@@ -1,0 +1,3 @@
+dist/
+*.wfxtmp
+App/defaults/visualfx.ini

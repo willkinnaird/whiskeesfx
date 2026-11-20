@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Version="2" Name="WhiskeesFX_VisualFX" FolderName="Packages" MetadataFolderName="PackagesMetadata">
+	<OutputDirectory>.</OutputDirectory>
+	<TemporaryOutputDirectory>_PackageInt</TemporaryOutputDirectory>
+	<Packages>
+		<Package>PackageDefinitions\whiskeesfx-visualfx-effects.xml</Package>
+	</Packages>
+	<PublishingGroups/>
+</Project>

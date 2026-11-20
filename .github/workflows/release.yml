@@ -1,0 +1,46 @@
+# Push a tag like v1.2.0 and this builds WhiskeesFX.exe and publishes a GitHub Release that every
+# installed app picks up (it checks on start and every 6 hours).
+#
+# The two Community packages are built on the developer's PC with the MSFS SDK (that can't run here):
+# copy them into packages/whiskeesfx-visualfx and packages/whiskeesfx-visualfx-effects before tagging
+# (PUBLISH-RELEASE.bat does that). A release without them still updates the app, settings and profiles.
+name: release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+      - name: Build the app
+        working-directory: App
+        run: |
+          cp ../VisualFX/visualfx.ini defaults/visualfx.ini
+          GOOS=windows GOARCH=amd64 go build -trimpath \
+            -ldflags "-s -w -H windowsgui -X main.version=${GITHUB_REF_NAME} -X main.defaultRepo=${GITHUB_REPOSITORY}" \
+            -o ../dist/WhiskeesFX.exe .
+      - name: Zip settings, profiles and packages
+        run: |
+          mkdir -p dist/defaults/profiles
+          cp VisualFX/visualfx.ini dist/defaults/
+          cp App/profiles/*.ini dist/defaults/profiles/
+          (cd dist/defaults && zip -qr ../defaults.zip .)
+          for p in whiskeesfx-visualfx whiskeesfx-visualfx-effects; do
+            if [ -d "packages/$p" ]; then (cd packages && zip -qr "../dist/$p.zip" "$p"); fi
+          done
+          ls -la dist
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="$(git tag -l --format='%(contents)' "$GITHUB_REF_NAME")"
+          [ -z "$notes" ] && notes="WhiskeesFX $GITHUB_REF_NAME"
+          files="dist/WhiskeesFX.exe dist/defaults.zip"
+          for p in whiskeesfx-visualfx whiskeesfx-visualfx-effects; do [ -f "dist/$p.zip" ] && files="$files dist/$p.zip"; done
+          gh release create "$GITHUB_REF_NAME" $files --title "WhiskeesFX $GITHUB_REF_NAME" --notes "$notes"

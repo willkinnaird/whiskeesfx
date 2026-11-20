@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>WhiskeesFX</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* Plain, flat styling on purpose: no animations, blur, shadows or web fonts, so the window costs almost nothing to draw. */
+:root{--bg:#0E1116;--panel:#161B22;--side:#12161C;--line:#262D36;--line2:#2E3A48;--text:#E6EAF0;--muted:#9AA4B2;--dim:#8D97A5;--acc:#F2A93B;--ok:#3FB27F;--bad:#E5534B;--blue:#8CC8FF}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+input[type=range]{accent-color:var(--acc);width:100%;margin:0}
+input[type=checkbox]{accent-color:var(--acc);width:18px;height:18px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--side)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+.logo i{width:28px;height:28px;border-radius:8px;background:var(--acc);display:inline-block}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;background:#262D36;color:#C9D1DB;font-size:12px;white-space:nowrap}
+.chip.blue{background:#13304A;color:var(--blue)}.chip.green{background:#1E2A22;color:#8FD9B3}.chip.warn{background:#3A2A12;color:#FFC56B}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;background:#1C2530;border:1px solid var(--line2);font-size:13px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:#4A5563}
+.dot.playing{background:var(--ok)}.dot.failed{background:var(--bad)}.dot.off{background:#2A313B;border:1px solid #4A5563}
+.grow{flex-grow:1}
+.btn{padding:8px 14px;border-radius:8px;border:1px solid var(--line2);background:#1C2530;min-height:36px}
+.btn:hover{background:#232B36}
+.btn.acc{border-color:var(--acc);color:var(--acc);background:transparent}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#0E1116;font-weight:600}
+.btn.small{padding:5px 10px;min-height:30px;font-size:12px}
+.seg{display:flex;gap:3px;background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:3px}
+.seg button{flex:1 1 0;border:0;background:transparent;border-radius:6px;padding:6px 8px;min-height:30px;font-size:12px;color:#C9D1DB}
+.seg button.on{background:var(--acc);color:#0E1116;font-weight:600}
+.tabs{display:flex;gap:4px}
+.tabs button{border:1px solid var(--line2);background:transparent;border-radius:8px;padding:6px 12px;min-height:32px}
+.tabs button.on{background:#232B36;border-color:var(--acc);color:#fff}
+.banner{margin:12px 20px 0;padding:10px 14px;border-radius:8px;background:#3A2A12;color:#FFDDA0;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+h2{margin:0 0 10px;font-size:15px}
+.label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--dim)}
+.muted{color:var(--muted)}.small{font-size:12px}
+.mono{font-family:Consolas,"Cascadia Mono",monospace}
+/* basic */
+#basic{padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;max-width:1300px}
+.grp{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:10px}
+.switch{position:relative;width:44px;height:24px;border-radius:12px;border:0;background:#2E3A48;padding:0;flex-shrink:0}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#C9D1DB}
+.switch.on{background:var(--ok)}.switch.on::after{left:23px;background:#fff}
+/* advanced */
+#adv{display:flex;flex-wrap:wrap;min-height:calc(100vh - 60px)}
+#adv nav{flex:1 1 250px;max-width:290px;overflow-x:hidden;border-right:1px solid var(--line);background:var(--side);padding:14px;display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 60px);overflow:auto}
+#adv main{flex:999 1 520px;min-width:0;padding:20px 24px;display:flex;flex-direction:column;gap:16px;max-height:calc(100vh - 60px);overflow:auto}
+#adv aside{flex:1 1 250px;max-width:300px;border-left:1px solid var(--line);background:var(--side);padding:16px;display:flex;flex-direction:column;gap:16px;max-height:calc(100vh - 60px);overflow:auto}
+.search{width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--line2);background:var(--bg)}
+.item{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:8px;font-size:13px;color:#C9D1DB;border:0;background:transparent;width:100%;text-align:left}
+.item:hover{background:#1A2029}
+.item.sel{background:#232B36;color:#fff;box-shadow:inset 2px 0 0 var(--acc)}
+.item .st{font-size:11px;color:var(--dim);white-space:nowrap}
+.item .grow{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .tw{color:var(--acc);font-size:11px}
+.dials{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.dial{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.dial.tw{border-color:#5A4520}
+.dial .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.dial input[type=text],.field input{width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--line2);background:var(--bg);font-family:Consolas,monospace;font-size:12px}
+.dial input.num{width:90px;text-align:right}
+.field{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.events{font-family:Consolas,monospace;font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:7px 10px}
+.hidden{display:none!important}
+.warnline{color:#FFC56B;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><i aria-hidden="true"></i>WhiskeesFX</div>
+  <span class="pill" id="prof"><span class="dot"></span><span class="muted">Aircraft</span><strong>…</strong></span>
+  <span id="chips" style="display:flex;flex-wrap:wrap;gap:6px"></span>
+  <span class="grow"></span>
+  <div class="tabs" role="tablist" aria-label="View">
+    <button role="tab" data-act="view" data-v="basic" id="tabBasic">Basic</button>
+    <button role="tab" data-act="view" data-v="advanced" id="tabAdv">Advanced</button>
+  </div>
+  <button class="btn acc hidden" id="updBtn" data-act="update">Update</button>
+  <button class="btn" data-act="hide" id="hideBtn" title="The app keeps running in the system tray">Hide to tray</button>
+</header>
+<div id="banners"></div>
+
+<!-- BASIC -->
+<section id="basic" class="hidden" aria-label="Basic settings">
+  <div class="card grp" id="masterCard">
+    <h2>All effects</h2>
+    <div class="row"><button class="switch" data-act="master-off" id="masterSw" aria-label="All effects on or off"></button><span id="masterTxt"></span></div>
+    <label class="field">Overall strength <span id="masterVal" class="mono"></span>
+      <input type="range" min="0" max="200" step="5" data-act="master-strength" id="masterRange"></label>
+    <div class="small muted">Changes reach the sim within 2 seconds. No restart.</div>
+  </div>
+  <div id="groupCards" style="display:contents"></div>
+  <div class="card grp">
+    <h2>Aircraft profile</h2>
+    <div class="small muted" id="profTitle"></div>
+    <label class="field">Profile
+      <select data-act="profile" id="profSel"></select></label>
+    <div class="small muted">Automatic picks the profile that matches the aircraft you load.</div>
+    <div><button class="btn small" data-act="newprofile">New profile for this aircraft</button></div>
+  </div>
+  <div class="card grp">
+    <h2>Quick tests</h2>
+    <div class="field">Humid air<div class="seg" data-test="humid"><button data-v="-1">Auto</button><button data-v="1">Always</button><button data-v="0">Never</button></div></div>
+    <div class="field">Runway<div class="seg" data-test="runway"><button data-v="auto">Auto</button><button data-v="wet">Wet</button><button data-v="dry">Dry</button></div></div>
+    <div class="small muted">Tests are forgotten when the app closes.</div>
+  </div>
+  <div class="card grp">
+    <h2>App</h2>
+    <label class="row"><input type="checkbox" data-act="set" data-k="startWithWindows" id="sWin"> Start with Windows (in the tray)</label>
+    <label class="row"><input type="checkbox" data-act="set" data-k="keepInTray" id="sTray"> Keep running in the tray when the window closes</label>
+    <label class="row"><input type="checkbox" data-act="set" data-k="autoUpdate" id="sUpd"> Check for updates automatically</label>
+    <div class="small muted" id="verLine"></div>
+    <div class="row"><button class="btn small" data-act="check">Check for updates</button><button class="btn small" data-act="quit">Quit WhiskeesFX</button></div>
+  </div>
+</section>
+
+<!-- ADVANCED -->
+<section id="adv" class="hidden" aria-label="Advanced settings">
+  <nav aria-label="Effects">
+    <input class="search" type="search" id="search" placeholder="Find an effect…" aria-label="Find an effect">
+    <div id="list"></div>
+  </nav>
+  <main id="detail"><div class="muted">Pick an effect on the left.</div></main>
+  <aside aria-label="Live and test tools">
+    <div><div class="label">Playing now</div><div id="playing" class="small" style="display:flex;flex-direction:column;gap:4px;margin-top:8px"></div></div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="label">Test tools</div>
+      <div class="field">Humid air<div class="seg" data-test="humid"><button data-v="-1">Auto</button><button data-v="1">Always</button><button data-v="0">Never</button></div></div>
+      <div class="field">Runway<div class="seg" data-test="runway"><button data-v="auto">Auto</button><button data-v="wet">Wet</button><button data-v="dry">Dry</button></div></div>
+      <div class="field">All effects<div class="seg" data-test="allOff"><button data-v="false">On</button><button data-v="true">Off</button></div></div>
+      <div class="field">Position markers<div class="seg" data-test="markers"><button data-v="false">Hidden</button><button data-v="true">Show</button></div></div>
+      <div id="soloLine" class="small"></div>
+    </div>
+    <div id="devBox" class="hidden" style="display:flex;flex-direction:column;gap:8px">
+      <div class="label">Developer</div>
+      <div class="small muted" id="devTxt"></div>
+      <button class="btn small" data-act="bake">Write my tweaks into the defaults file</button>
+    </div>
+    <div><div class="label">Recent events</div><div id="events" class="events" style="margin-top:8px"></div></div>
+  </aside>
+</section>
+
+<script>
+"use strict";
+// Low-cost UI: one poll per second (paused when the window is hidden or minimised), event delegation
+// (listeners are attached once, never per render), and parts of the page are rebuilt only when their data changed.
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let S = null, effects = [], sel = null, view = null, timer = null, lastFull = 0, busy = false;
+const painted = {}; // key -> last html, to skip identical repaints
+
+let dragging = false; // never rebuild a slider while it's being dragged
+document.addEventListener("pointerdown", (e) => { if (e.target.type === "range") dragging = true; });
+document.addEventListener("pointerup", () => { if (dragging) { dragging = false; setTimeout(() => refresh(false), 350); } });
+function paint(id, html) {
+  if (dragging && (id === "groupCards" || id === "detail")) return;
+  if (painted[id] !== html) { painted[id] = html; $(id).innerHTML = html; }
+}
+
+async function api(path, body) {
+  const r = await fetch(path, body === undefined ? {} : {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  return r.json();
+}
+async function post(path, body) {
+  const r = await api(path, body || {});
+  if (r && r.ok === false && r.error) alert(r.error);
+  await refresh(true);
+  return r;
+}
+
+async function refresh(full) {
+  if (busy) return;
+  busy = true;
+  try {
+    const wantFull = full || view === "advanced" && Date.now() - lastFull > 4000 || !effects.length;
+    const s = await api("/api/state" + (wantFull ? "?full=1" : ""));
+    if (s.effects) { effects = s.effects; lastFull = Date.now(); }
+    S = s;
+    render();
+  } catch (e) { /* app closing */ }
+  busy = false;
+}
+
+function schedule() {
+  clearTimeout(timer);
+  if (document.hidden) return; // nothing runs while minimised
+  timer = setTimeout(async () => { await refresh(false); schedule(); }, 1000);
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { refresh(false); } schedule(); });
+
+// ---- rendering ---------------------------------------------------------------------------------
+function render() {
+  const s = S;
+  view = s.view || "basic";
+  $("basic").classList.toggle("hidden", view !== "basic");
+  $("adv").classList.toggle("hidden", view !== "advanced");
+  $("tabBasic").classList.toggle("on", view === "basic");
+  $("tabAdv").classList.toggle("on", view === "advanced");
+  $("hideBtn").classList.toggle("hidden", !s.settings.keepInTray);
+  const p = s.profile || {};
+  paint("prof", `<span class="dot ${s.sim.fresh ? "playing" : ""}"></span><span class="muted">Aircraft</span><strong>${esc(p.name || "none")}</strong><span class="muted">· ${s.manualProfile ? "chosen by you" : "auto"}</span>`);
+  const sim = s.sim, c = [];
+  if (!sim.fresh) c.push(`<span class="chip">Sim not running</span>`);
+  else {
+    if (sim.wet) c.push(`<span class="chip blue">Wet runway ${Math.round(sim.water)}%</span>`);
+    if (sim.humid) c.push(`<span class="chip green">Humid</span>`);
+    c.push(`<span class="chip">${sim.onGround ? "On ground" : Math.round(sim.agl) + " ft"} · ${Math.round(sim.gs)} kt</span>`);
+    c.push(`<span class="chip">N1 ${sim.n1.toFixed(1)}%</span>`);
+  }
+  if (s.master.off) c.push(`<span class="chip warn">All effects paused</span>`);
+  paint("chips", c.join(""));
+  const b = [];
+  if (s.paused) b.push(`<div class="banner"><span class="grow">${esc(s.message)}</span><button class="btn small" data-act="resume">Resume</button></div>`);
+  else if (s.message) b.push(`<div class="banner"><span class="grow">${esc(s.message)}</span></div>`);
+  if (s.progress) b.push(`<div class="banner"><span class="grow">${esc(s.progress)}</span></div>`);
+  if (p.generic && s.title) b.push(`<div class="banner"><span class="grow">No profile for “${esc(s.title)}” yet: using the generic one (the sim's standard N1, A321 positions).</span><button class="btn small" data-act="newprofile">New profile for this aircraft</button></div>`);
+  paint("banners", b.join(""));
+  const u = s.update || {};
+  const updOn = u.appNew || u.dataNew;
+  $("updBtn").classList.toggle("hidden", !updOn);
+  if (updOn) $("updBtn").textContent = u.busy ? "Updating…" : `Update to ${u.latest}`;
+  document.querySelectorAll("[data-test]").forEach((seg) => {
+    const v = String(s.tests[seg.dataset.test]);
+    seg.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.v === v));
+  });
+  if (view === "basic") renderBasic(); else renderAdv();
+}
+
+function renderBasic() {
+  const s = S;
+  $("masterSw").classList.toggle("on", !s.master.off);
+  $("masterTxt").textContent = s.master.off ? "Paused" : "On";
+  setRange("masterRange", Math.round(s.master.strength * 100));
+  $("masterVal").textContent = Math.round(s.master.strength * 100) + "%";
+  paint("groupCards", s.groups.map((g) => `
+    <div class="card grp">
+      <div class="row"><h2 class="grow" style="margin:0">${esc(nice(g.name))}</h2>
+        <button class="switch ${g.off ? "" : "on"}" data-act="group-off" data-g="${esc(g.name)}" aria-label="${esc(nice(g.name))} on or off"></button></div>
+      <div class="small muted">${g.count} effect${g.count === 1 ? "" : "s"}${g.playing ? ` · <span style="color:#8FD9B3">${g.playing} playing</span>` : ""}</div>
+      <label class="field">Strength <span class="mono">${Math.round(g.strength * 100)}%</span>
+        <input type="range" min="0" max="200" step="5" value="${Math.round(g.strength * 100)}" data-act="group-strength" data-g="${esc(g.name)}"></label>
+    </div>`).join(""));
+  $("profTitle").textContent = s.title ? `Loaded: ${s.title}` : "No aircraft loaded yet";
+  const opts = [`<option value="">Automatic${s.manualProfile ? "" : " (" + esc((s.profile || {}).name || "") + ")"}</option>`]
+    .concat((s.profiles || []).map((p) => `<option value="${esc(p.id)}">${esc(p.name)}${p.user ? " (yours)" : ""}</option>`));
+  paint("profSel", opts.join(""));
+  $("profSel").value = s.manualProfile || "";
+  $("sWin").checked = s.settings.startWithWindows;
+  $("sTray").checked = s.settings.keepInTray;
+  $("sUpd").checked = s.settings.autoUpdate;
+  const u = s.update || {};
+  $("verLine").textContent = `App ${s.version} · effects ${s.settings.pkgEffects || "not installed"} · module ${s.settings.pkgModule || "not installed"}` +
+    (u.latest ? ` · latest ${u.latest}` : "") + (u.error ? ` · update check: ${u.error}` : "");
+}
+
+const NICE = {"RAIN / WET RUNWAY": "Rain and wet runway", "ENGINES": "Engines", "LANDING": "Landing", "AIRFLOW: VORTICES AND VAPOUR (humid air)": "Vortices and vapour", "SNOW": "Snow", "WINTER": "Winter and de-icing"};
+const nice = (g) => NICE[g] || g;
+
+function renderAdv() {
+  const s = S;
+  if (!sel && effects.length) sel = (effects.find((e) => !e.marker) || effects[0]).section;
+  const q = $("search").value.trim().toLowerCase();
+  const groups = {};
+  for (const e of effects) {
+    if (q && !e.name.toLowerCase().includes(q)) continue;
+    (groups[e.group] = groups[e.group] || []).push(e);
+  }
+  let html = "";
+  for (const g in groups) {
+    html += `<div class="label" style="padding:6px 8px 2px">${esc(nice(g))}</div>`;
+    for (const e of groups[g]) {
+      const st = s.states[e.section] || e.state;
+      html += `<button class="item ${sel === e.section ? "sel" : ""}" data-act="pick" data-sec="${esc(e.section)}"><span class="dot ${st}"></span><span class="grow">${esc(e.name)}</span>${e.tweaked ? '<span class="tw">●</span>' : ""}<span class="st">${st}</span></button>`;
+    }
+  }
+  paint("list", html);
+  const playing = effects.filter((e) => s.states[e.section] === "playing").map((e) => `<div class="row"><span class="dot playing"></span>${esc(e.name)}</div>`);
+  paint("playing", playing.join("") || `<span class="muted">Nothing right now${s.sim.fresh ? "" : " (sim not running)"}</span>`);
+  paint("events", (s.sim.events || []).slice(-12).reverse().map((x) => `<div>${esc(x)}</div>`).join(""));
+  paint("soloLine", s.tests.solo ? `Solo: <strong>${esc(s.tests.solo.replace("effect.", ""))}</strong> <button class="btn small" data-act="unsolo">Stop solo</button>` : "");
+  $("devBox").classList.toggle("hidden", !s.devMode);
+  if (s.devMode) $("devTxt").textContent = `Defaults: ${s.settings.sourceIni}. ${s.tweaks} tweak(s) on top.`;
+  renderDetail();
+}
+
+// ranges for the sliders (min, max, step)
+const RANGE = {gm_alpha:[0,1,.005], gm_rate:[0,5000,10], gm_size:[0,5,.01], gm_life:[0,10,.01], gm_grey:[0,1,.01], gm_blue:[0,1,.01], gm_r:[0,1,.01], gm_g:[0,1,.01], gm_b:[0,1,.01], gm_glow:[0,1,.01],
+  gm_dir_x:[-60,60,.1], gm_dir_y:[-60,60,.1], gm_dir_z:[-60,60,.1], gm_speed:[0,100,.5], gm_pitch:[-180,180,1], gm_heading:[-180,180,1], gm_cone:[0,90,1], gm_cone_in:[0,90,1], gm_jitter:[0,10,.01],
+  gm_spread_x:[0,20,.01], gm_spread_y:[0,20,.01], gm_spread_z:[0,20,.01], gm_gravity:[-20,20,.1], gm_drag:[0,5,.05], gm_wind:[0,1,.01], gm_swirl:[0,10,.05], gm_swirl_rate:[0,50,.5], gm_swirl_up:[0,1,1],
+  gm_grow:[0,10,.05], gm_grow_curve:[.1,3,.05], gm_size_min:[0,1,.01], gm_life_min:[0,1,.01], gm_shape:[0,1,1], gm_fade_in:[0,1,.01], gm_fade_out:[0,1,.01], gm_spin:[0,10,.1], gm_burst:[0,5000,10], gm_burst_time:[0,5,.05]};
+const LABEL = {gm_alpha:"Density (peak opacity)", gm_rate:"Amount (particles/s)", gm_size:"Puff size (m)", gm_life:"Life (s)", gm_grey:"Brightness (1 = white)", gm_blue:"Blue tint", gm_r:"Red", gm_g:"Green", gm_b:"Blue", gm_glow:"Glow (self-lit)",
+  gm_dir_x:"Sideways speed (m/s)", gm_dir_y:"Up speed (m/s)", gm_dir_z:"Forward speed (m/s, − = back)", gm_speed:"Cone speed (m/s)", gm_pitch:"Cone pitch (°)", gm_heading:"Cone heading (°)", gm_cone:"Cone angle (°)", gm_cone_in:"Inner cone (°)", gm_jitter:"Random wander (m/s)",
+  gm_spread_x:"Start width (m)", gm_spread_y:"Start height (m)", gm_spread_z:"Start length (m)", gm_gravity:"Gravity (− rises)", gm_drag:"Slow-down", gm_wind:"Wind drift (0–1)", gm_swirl:"Corkscrew (m/s)", gm_swirl_rate:"Corkscrew turns (rad/s)", gm_swirl_up:"Corkscrew upright (0/1)",
+  gm_grow:"Growth over life", gm_grow_curve:"Growth curve", gm_size_min:"Smallest size (share)", gm_life_min:"Shortest life (share)", gm_shape:"Fade shape (0 soft, 1 hold)", gm_fade_in:"Fade in (share)", gm_fade_out:"Fade out (share)", gm_spin:"Spin", gm_burst:"Start burst (particles/s)", gm_burst_time:"Burst length (s)"};
+const isNum = (v) => /^-?\d*\.?\d+$/.test(String(v).trim());
+// an expression ending "... N *" gets a slider for N: most density formulas end that way
+const tailMul = (v) => { const m = String(v).match(/^(.*\s)(-?\d*\.?\d+)\s+\*\s*$/); return m ? {head: m[1], n: parseFloat(m[2])} : null; };
+
+function renderDetail() {
+  const e = effects.find((x) => x.section === sel);
+  if (!e) { paint("detail", `<div class="muted">Pick an effect on the left. A gold dot marks effects you've changed.</div>`); return; }
+  const st = S.states[e.section] || e.state;
+  let html = `<div class="row" style="flex-wrap:wrap;align-items:flex-start">
+      <div class="grow" style="display:flex;flex-direction:column;gap:4px">
+        <div class="small muted">${esc(nice(e.group))} · <span class="dot ${st}" style="display:inline-block"></span> ${st}</div>
+        <div style="font-size:24px;font-weight:700">${esc(e.name)}</div>
+        <div class="muted" style="max-width:720px">${esc(e.note)}</div>
+      </div>
+      <div class="row">
+        <button class="btn" data-act="solo" data-sec="${esc(e.section)}">${S.tests.solo === e.section ? "Stop solo" : "Solo"}</button>
+        <button class="btn" data-act="reset" data-sec="${esc(e.section)}" ${e.tweaked ? "" : "disabled"}>Reset to default</button>
+        <button class="btn ${e.on ? "ok" : ""}" data-act="toggle" data-sec="${esc(e.section)}">${e.on ? "On" : "Off"}</button>
+      </div></div>`;
+  if (e.count > 16) html += `<div class="warnline">This effect sends ${e.count} dials: the sim ignores them all above 16. Remove some.</div>`;
+  html += `<div class="fields">
+      ${field(e, "when", "When it plays", e.when)}
+      ${field(e, "at", "Attached to", e.at)}
+      ${field(e, "offset", "Offset x y z (m)", e.offset)}
+    </div><div class="dials">`;
+  for (const d of e.dials) {
+    const r = RANGE[d.key] || [-10, 10, .01];
+    const lab = LABEL[d.key] || d.key;
+    const own = d.own ? "" : ` <span class="small muted">(from preset)</span>`;
+    let body;
+    if (isNum(d.value)) {
+      const v = parseFloat(d.value);
+      const lo = Math.min(r[0], v), hi = Math.max(r[1], v);
+      body = `<input type="range" min="${lo}" max="${hi}" step="${r[2]}" value="${v}" data-act="dial" data-sec="${esc(e.section)}" data-k="${esc(d.key)}" aria-label="${esc(lab)}">`;
+    } else {
+      const t = tailMul(d.value);
+      body = `<input type="text" value="${esc(d.value)}" data-act="expr" data-sec="${esc(e.section)}" data-k="${esc(d.key)}" aria-label="${esc(lab)} formula" spellcheck="false">`;
+      if (t) body += `<label class="small muted" style="display:flex;gap:8px;align-items:center">Overall ×<input type="range" min="0" max="${Math.max(1, t.n * 3)}" step="${Math.max(0.0005, t.n / 100).toPrecision(2)}" value="${t.n}" data-act="mul" data-sec="${esc(e.section)}" data-k="${esc(d.key)}" data-head="${esc(t.head)}" aria-label="${esc(lab)} multiplier"></label>`;
+    }
+    html += `<div class="dial ${d.tweaked ? "tw" : ""}"><div class="top"><span><strong>${esc(lab)}</strong>${own}</span>
+      <span class="mono small" style="color:var(--acc)">${isNum(d.value) ? esc(d.value) : (tailMul(d.value) ? "× " + tailMul(d.value).n : "formula")}</span></div>${body}
+      <div class="small muted mono">${esc(d.key)}</div></div>`;
+  }
+  html += `</div>`;
+  // don't repaint while the person is typing in a field of this panel
+  const a = document.activeElement;
+  if (a && $("detail").contains(a) && a.tagName === "INPUT" && a.type === "text") return;
+  paint("detail", html);
+}
+function field(e, k, lab, v) {
+  return `<label class="field">${esc(lab)}<input type="text" value="${esc(v)}" data-act="field" data-sec="${esc(e.section)}" data-k="${k}" spellcheck="false"></label>`;
+}
+function setRange(id, v) { const el = $(id); if (document.activeElement !== el) el.value = v; }
+
+// ---- actions (one listener each, for the whole page) -------------------------------------------
+const throttles = {};
+function throttle(key, fn) { // send at most every 300 ms while a slider moves, and always the last value
+  const t = throttles[key] || (throttles[key] = {last: 0, timer: null});
+  clearTimeout(t.timer);
+  const wait = Math.max(0, 300 - (Date.now() - t.last));
+  t.timer = setTimeout(() => { t.last = Date.now(); delete throttles[key]; fn(); }, wait);
+}
+const setDial = (sec, key, value) => post("/api/set", {Section: sec, Key: key, Value: String(value)});
+
+document.addEventListener("click", (ev) => {
+  const t = ev.target.closest("[data-act],[data-test] button");
+  if (!t) return;
+  const seg = t.parentElement && t.parentElement.dataset.test;
+  if (seg) {
+    const v = t.dataset.v, tests = Object.assign({}, S.tests);
+    tests[seg] = seg === "humid" ? parseInt(v, 10) : (v === "true" ? true : v === "false" ? false : v);
+    post("/api/tests", tests);
+    return;
+  }
+  const a = t.dataset.act, sec = t.dataset.sec;
+  switch (a) {
+    case "view": post("/api/settings", {view: t.dataset.v}); break;
+    case "hide": api("/api/hide", {}); break;
+    case "quit": if (confirm("Quit WhiskeesFX? Effects keep working with the last settings; aircraft profiles won't switch until it runs again.")) api("/api/quit", {}); break;
+    case "update": post("/api/update/apply"); break;
+    case "check": post("/api/update/check"); break;
+    case "resume": post("/api/resume"); break;
+    case "newprofile": post("/api/profile/new"); break;
+    case "bake": if (confirm("Write all your tweaks into the defaults file and clear them from the app?")) post("/api/bake"); break;
+    case "master-off": post("/api/group", {Name: "*", Off: !S.master.off}); break;
+    case "group-off": { const g = S.groups.find((x) => x.name === t.dataset.g); post("/api/group", {Name: t.dataset.g, Off: !(g && g.off)}); break; }
+    case "pick": sel = sec; render(); break;
+    case "toggle": { const e = effects.find((x) => x.section === sec); setDial(sec, "on", e && e.on ? "0" : "1"); break; }
+    case "solo": post("/api/tests", Object.assign({}, S.tests, {solo: S.tests.solo === sec ? "" : sec})); break;
+    case "unsolo": post("/api/tests", Object.assign({}, S.tests, {solo: ""})); break;
+    case "reset": post("/api/reset", {Section: sec}); break;
+  }
+});
+document.addEventListener("input", (ev) => {
+  const t = ev.target, a = t.dataset && t.dataset.act;
+  if (t.id === "search") { renderAdv(); return; }
+  if (a === "master-strength") { $("masterVal").textContent = t.value + "%"; throttle("m", () => post("/api/group", {Name: "*", Strength: t.value / 100})); }
+  else if (a === "group-strength") { t.previousElementSibling.textContent = t.value + "%"; throttle("g" + t.dataset.g, () => post("/api/group", {Name: t.dataset.g, Strength: t.value / 100})); }
+  else if (a === "dial") { const v = +t.value; t.closest(".dial").querySelector(".top .mono").textContent = v; throttle(t.dataset.sec + t.dataset.k, () => setDial(t.dataset.sec, "param:" + t.dataset.k, v)); }
+  else if (a === "mul") { const v = (+t.value).toPrecision(3); throttle(t.dataset.sec + t.dataset.k, () => setDial(t.dataset.sec, "param:" + t.dataset.k, t.dataset.head + v + " *")); }
+});
+document.addEventListener("change", (ev) => {
+  const t = ev.target, a = t.dataset && t.dataset.act;
+  if (a === "expr") setDial(t.dataset.sec, "param:" + t.dataset.k, t.value);
+  else if (a === "field") setDial(t.dataset.sec, t.dataset.k, t.value);
+  else if (a === "profile") post("/api/profile", {Manual: t.value});
+  else if (a === "set") post("/api/settings", {[t.dataset.k]: t.checked});
+});
+document.addEventListener("keydown", (ev) => { // Enter in a text field saves it
+  const t = ev.target;
+  if (ev.key === "Enter" && t.tagName === "INPUT" && t.type === "text") t.blur();
+});
+
+refresh(true).then(schedule);
+</script>
+</body>
+</html>

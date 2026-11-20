@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<SimBase.Document Type="AceXML" version="1,0">
+    <Descr>AceXML Document</Descr>
+    <WorldBase.Flight>
+        <VisualEffect.VisualEffect InstanceId="{E2B94D17-6A3C-4F85-9D10-3C7E5A8B2F69}">
+            <Name>WFX_HeatHaze</Name>
+            <EmitterList>
+                <ObjectReference InstanceId="{E66CD420-325E-540B-837A-0DB09D017080}" id="StaticMesh"/>
+            </EmitterList>
+        </VisualEffect.VisualEffect>
+        <VisualEffect.StaticMesh InstanceId="{E66CD420-325E-540B-837A-0DB09D017080}">
+            <StaticMeshPosition>{D5707B77-C977-555A-89A2-76EA49FDB5B4}, 0.000000, 0.000000, 0.000000</StaticMeshPosition>
+            <StaticMeshRotation>{D3423683-4C79-51DA-B8AC-5D10D47576EE}, -90.000000, 55.000000, 90.000000</StaticMeshRotation>
+            <StaticMeshScale>{4AA7E5A5-0EC5-5FE2-A6FC-A121AF070B57}, 1.000000</StaticMeshScale>
+            <Material>{DE37F56D-442C-45AB-A325-4572668CE135}</Material>
+            <Mesh>{58F995B0-49DE-40FD-B839-881844D30EAD}</Mesh>
+            <HeatDeformDeformation>{843A2DD0-793C-5BA1-82B9-DA59AE631456}, 2.500000, 1.750000</HeatDeformDeformation>
+            <HeatDeformBlur>{D90D0868-1638-5B82-9F68-A058D8D1E927}, 1.000000</HeatDeformBlur>
+        </VisualEffect.StaticMesh>
+        <VisualEffect.GraphParameter InstanceId="{96D39EF1-5466-551B-86DC-AB38A4F5AE92}">
+            <OutputValue>{E3BB07B9-C7CC-5B8C-BE59-B077243CC7FD}</OutputValue>
+            <GraphParamName>hh_strength</GraphParamName>
+            <GraphParamDefaultValue>{00000000-0000-0000-0000-000000000000}, 2.500000</GraphParamDefaultValue>
+        </VisualEffect.GraphParameter>
+        <VisualEffect.GraphParameter InstanceId="{A5CC4942-5A2E-5D82-B8D1-DAABC4864C09}">
+            <OutputValue>{A9A19B4D-CECB-5C97-9921-F2256E0E36D2}</OutputValue>
+            <GraphParamName>hh_speed</GraphParamName>
+            <GraphParamDefaultValue>{00000000-0000-0000-0000-000000000000}, 1.750000</GraphParamDefaultValue>
+        </VisualEffect.GraphParameter>
+        <VisualEffect.GraphParameter InstanceId="{F7F79149-9634-5861-9DE3-47FCD70731D7}">
+            <OutputValue>{D90D0868-1638-5B82-9F68-A058D8D1E927}</OutputValue>
+            <GraphParamName>hh_blur</GraphParamName>
+            <GraphParamDefaultValue>{00000000-0000-0000-0000-000000000000}, 1.000000</GraphParamDefaultValue>
+        </VisualEffect.GraphParameter>
+        <VisualEffect.GraphParameter InstanceId="{7FD3A267-6FE0-5AB6-91FF-EE2D8F0D5973}">
+            <OutputValue>{4AA7E5A5-0EC5-5FE2-A6FC-A121AF070B57}</OutputValue>
+            <GraphParamName>hh_scale</GraphParamName>
+            <GraphParamDefaultValue>{00000000-0000-0000-0000-000000000000}, 1.000000</GraphParamDefaultValue>
+        </VisualEffect.GraphParameter>
+        <VisualEffect.GraphParameter InstanceId="{C271AEB1-BA2D-5906-902B-B01890085568}">
+            <OutputValue>{88C88BD6-24EE-51D2-BF41-A6A856C11C1A}</OutputValue>
+            <GraphParamName>hh_pitch</GraphParamName>
+            <GraphParamDefaultValue>{00000000-0000-0000-0000-000000000000}, -90.000000</GraphParamDefaultValue>
+        </VisualEffect.GraphParameter>
+        <VisualEffect.GraphParameter InstanceId="{422C2DD4-F60E-5170-B9DD-A0CBBBF288A7}">
+            <OutputValue>{1027F518-312A-5C58-90C8-65B05793C8E1}</OutputValue>
+            <GraphParamName>hh_bank</GraphParamName>
+            <GraphParamDefaultValue>{00000000-0000-0000-0000-000000000000}, 55.000000</GraphParamDefaultValue>
+        </VisualEffect.GraphParameter>
+        <VisualEffect.GraphParameter InstanceId="{35D70A2F-F502-58C7-80AD-36958AC2AC91}">
+            <OutputValue>{C0B0B1E0-BBE3-5F90-A360-A4F1C7EE3F6D}</OutputValue>
+            <GraphParamName>hh_heading</GraphParamName>
+            <GraphParamDefaultValue>{00000000-0000-0000-0000-000000000000}, 90.000000</GraphParamDefaultValue>
+        </VisualEffect.GraphParameter>
+        <VisualEffect.GraphParameter InstanceId="{6B4E1E35-2980-5B6B-9137-5F021894A5E7}">
+            <OutputValue>{180EBBE8-1AB0-5230-BD1F-C45C9F2EF5C1}</OutputValue>
+            <GraphParamName>hh_x</GraphParamName>
+            <GraphParamDefaultValue>{00000000-0000-0000-0000-000000000000}, 0.000000</GraphParamDefaultValue>
+        </VisualEffect.GraphParameter>
+        <VisualEffect.GraphParameter InstanceId="{AF0919F8-EAF4-55A8-A978-AF45D174EFDD}">
+            <OutputValue>{560BD035-3D6D-5C61-9EFD-5E1BAFE26898}</OutputValue>
+            <GraphParamName>hh_y</GraphParamName>
+            <GraphParamDefaultValue>{00000000-0000-0000-0000-000000000000}, 0.000000</GraphParamDefaultValue>
+        </VisualEffect.GraphParameter>
+        <VisualEffect.GraphParameter InstanceId="{8E4A6134-0C7D-5BF1-9E1B-2F834A9447D0}">
+            <OutputValue>{975D7E21-5A05-5A32-AF5B-1D14D12981E0}</OutputValue>
+            <GraphParamName>hh_z</GraphParamName>
+            <GraphParamDefaultValue>{00000000-0000-0000-0000-000000000000}, 0.000000</GraphParamDefaultValue>
+        </VisualEffect.GraphParameter>
+        <VisualEffect.Vector2 InstanceId="{6918C2FE-96C2-5BFF-9CA7-EF32D64E1024}">
+            <OutputValue>{843A2DD0-793C-5BA1-82B9-DA59AE631456}</OutputValue>
+            <x>{E3BB07B9-C7CC-5B8C-BE59-B077243CC7FD}, 0.000000</x>
+            <y>{A9A19B4D-CECB-5C97-9921-F2256E0E36D2}, 0.000000</y>
+        </VisualEffect.Vector2>
+        <VisualEffect.Vector3 InstanceId="{78FA9B08-FB92-5FFB-BC3D-FC96E55E0677}">
+            <OutputValue>{D3423683-4C79-51DA-B8AC-5D10D47576EE}</OutputValue>
+            <x>{88C88BD6-24EE-51D2-BF41-A6A856C11C1A}, 0.000000</x>
+            <y>{1027F518-312A-5C58-90C8-65B05793C8E1}, 0.000000</y>
+            <z>{C0B0B1E0-BBE3-5F90-A360-A4F1C7EE3F6D}, 0.000000</z>
+        </VisualEffect.Vector3>
+        <VisualEffect.Vector3 InstanceId="{E1A3BA6D-3759-5EC4-A996-81C6C020F084}">
+            <OutputValue>{D5707B77-C977-555A-89A2-76EA49FDB5B4}</OutputValue>
+            <x>{180EBBE8-1AB0-5230-BD1F-C45C9F2EF5C1}, 0.000000</x>
+            <y>{560BD035-3D6D-5C61-9EFD-5E1BAFE26898}, 0.000000</y>
+            <z>{975D7E21-5A05-5A32-AF5B-1D14D12981E0}, 0.000000</z>
+        </VisualEffect.Vector3>
+    </WorldBase.Flight>
+</SimBase.Document>

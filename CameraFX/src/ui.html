@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>WhiskeesFX CameraFX</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#0f1419; --panel:#171e26; --line:#26313d; --text:#e6edf3; --dim:#8b98a5; --acc:#f2a33a; --ok:#3fb950; --warn:#d29922; --err:#f85149; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.45 "Segoe UI", system-ui, sans-serif; }
+  .wrap { max-width:880px; margin:0 auto; padding:28px 20px 40px; }
+  header { display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:18px; }
+  h1 { font-size:22px; margin:0; letter-spacing:.3px; } h1 span { color:var(--acc); }
+  .sub { color:var(--dim); font-size:13px; }
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  @media (max-width:760px){ .grid { grid-template-columns:1fr; } }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px; }
+  .card h2 { font-size:12px; text-transform:uppercase; letter-spacing:1.2px; color:var(--dim); margin:0 0 12px; font-weight:600; }
+  .status { display:flex; flex-direction:column; gap:8px; }
+  .pill { display:flex; gap:10px; align-items:flex-start; }
+  .dot { width:9px; height:9px; border-radius:50%; margin-top:6px; flex:none; background:var(--dim); }
+  .dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.err{background:var(--err)}
+  .row { display:grid; grid-template-columns: 210px 1fr 44px; align-items:center; gap:12px; margin:9px 0; }
+  .row label { color:var(--text); } .row small { display:block; color:var(--dim); font-size:11.5px; }
+  .row output { text-align:right; font-variant-numeric:tabular-nums; color:var(--acc); }
+  input[type=range] { width:100%; accent-color:var(--acc); }
+  .checks label { display:flex; gap:8px; align-items:center; margin:6px 0; cursor:pointer; }
+  button { background:#22303d; color:var(--text); border:1px solid var(--line); border-radius:7px; padding:8px 14px; font:inherit; cursor:pointer; }
+  button:hover { border-color:var(--acc); } button.primary { background:var(--acc); color:#1b1206; border-color:var(--acc); font-weight:600; }
+  .btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  td { padding:3px 0; } td:last-child { text-align:right; color:var(--dim); }
+  .bars { display:flex; flex-direction:column; gap:7px; margin-top:6px; }
+  .bar { display:grid; grid-template-columns:52px 1fr 64px; gap:8px; align-items:center; font-size:12px; color:var(--dim); }
+  .track { height:8px; background:#0c1116; border-radius:4px; position:relative; overflow:hidden; }
+  .track::after { content:""; position:absolute; left:50%; top:0; bottom:0; width:1px; background:var(--line); }
+  .fill { position:absolute; top:0; bottom:0; background:var(--acc); }
+  .full { grid-column: 1 / -1; }
+  .hint { color:var(--dim); font-size:12px; margin-top:8px; }
+  input[type=text] { width:100%; background:#0c1116; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:7px 9px; font:inherit; }
+  button.toggle { min-width:190px; font-weight:600; padding:10px 16px; }
+  button.toggle.on { background:var(--ok); border-color:var(--ok); color:#06210d; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1>Whiskees<span>FX</span> CameraFX</h1><div class="sub">Runway bumps, oleo bob, braking lurch and head tracking for MSFS 2024</div></div>
+    <button id="quit">Quit</button>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Status</h2>
+      <div class="status">
+        <div class="pill"><div class="dot" id="simDot"></div><div id="simTxt">…</div></div>
+        <div class="pill"><div class="dot" id="trkDot"></div><div><div id="trkTxt">…</div>
+          <div class="btns" id="fixWrap" style="display:none"><button id="fix">Use CameraFX for head tracking</button></div></div></div>
+        <div class="pill"><div class="dot" id="actDot"></div><div id="actTxt">…</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Live</h2>
+      <table>
+        <tr><td>Ground speed</td><td id="gs">–</td></tr>
+        <tr><td>Longitudinal accel</td><td id="ax">–</td></tr>
+        <tr><td>Surface</td><td id="surf">–</td></tr>
+        <tr><td>Brakes / Speedbrake</td><td id="brk">–</td></tr>
+      </table>
+      <div class="bars">
+        <div class="bar"><span>Up/down</span><div class="track"><div class="fill" id="bY"></div></div><span id="vY"></span></div>
+        <div class="bar"><span>Fwd/back</span><div class="track"><div class="fill" id="bZ"></div></div><span id="vZ"></span></div>
+        <div class="bar"><span>Nod</span><div class="track"><div class="fill" id="bP"></div></div><span id="vP"></span></div>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h2>Tobii head tracking</h2>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <button id="headBtn" class="toggle">…</button>
+        <button id="recBtn">Re-centre</button>
+        <div class="pill"><div class="dot" id="headDot"></div><div id="headTxt">…</div></div>
+      </div>
+      <div class="sub" style="margin:14px 0 2px">Tobii settings, the same as MSFS 2024's Tobii “Fine tune your input's curve” page.</div>
+      <div id="tobiiSliders"></div>
+      <div class="checks"><label><input type="checkbox" id="tobiiAutoCenter"> Head Tracking Auto-center</label></div>
+      <div class="row"><label for="headHotkey">Toggle key<small>Works while MSFS is in front</small></label><input type="text" id="headHotkey" placeholder="e.g. Ctrl+Shift+H or F9"><output></output></div>
+      <div class="row"><label for="recenterHotkey">Re-centre key<small>Look straight at the screen and press</small></label><input type="text" id="recenterHotkey" placeholder="e.g. Ctrl+Shift+R or F12"><output></output></div>
+      <div class="hint" id="hkErr" style="color:var(--warn)"></div>
+      <div class="row"><label>Toggle joystick button<small>Any stick, throttle or button box</small></label><div style="display:flex;gap:8px;align-items:center"><span id="joyTxt">None</span><button id="joyBind">Bind</button><button id="joyClear">Clear</button></div><output></output></div>
+      <div class="row"><label>Re-centre joystick button</label><div style="display:flex;gap:8px;align-items:center"><span id="joyRecTxt">None</span><button id="joyRecBind">Bind</button><button id="joyRecClear">Clear</button></div><output></output></div>
+      <div class="hint">Switching head tracking off here only stops your real head movement. The bumps and lurches keep running. Use this toggle instead of the head-tracking toggles in MSFS or ChasePlane, which switch off the effects as well. If the Tobii loses sight of you, the view eases back to centre and the effects carry on.</div>
+    </div>
+
+    <div class="card full">
+      <h2>Effects</h2>
+      <div id="sliders"></div>
+      <div class="checks" style="display:flex;gap:24px;flex-wrap:wrap;margin-top:8px">
+        <label><input type="checkbox" id="enabled"> Effects on</label>
+        <label><input type="checkbox" id="onlyInCockpit"> Only in cockpit view (ChasePlane views always count)</label>
+        <label><input type="checkbox" id="invertPitch"> Invert nod direction</label>
+      </div>
+      <div class="btns">
+        <button class="primary" id="tBump">Test a bump</button>
+        <button class="primary" id="tLurch">Test a brake lurch</button>
+        <button id="reset">Reset to defaults</button>
+      </div>
+      <div class="hint">Sit in the cockpit and press a test button to feel each effect. If braking makes your view tilt <em>up</em>, tick “Invert nod direction”. Changes save automatically.</div>
+    </div>
+  </div>
+</div>
+<script>
+const SL = [
+  ["master","Overall intensity","Scales everything",0,3,0.05],
+  ["groundBob","Taxi bob","Slow up-and-down rocking on the oleos",0,3,0.05],
+  ["rumble","Surface rumble","Fine vibration, grows with speed",0,3,0.05],
+  ["bumps","Bumps & joints","Slab joints and patches: nose wheel, then mains",0,3,0.05],
+  ["touchdownThump","Touchdown thump","Scales with your sink rate",0,3,0.05],
+  ["brakeLurch","Brake lurch","Forward lurch and nod under deceleration",0,3,0.05],
+  ["speedbrakeLurch","Speedbrake lurch","Extra forward pull with speedbrakes out in flight",0,3,0.05],
+  ["speedbrakeBuffet","Speedbrake buffet","Airframe shudder, scales with airspeed",0,3,0.05],
+  ["accelPush","Acceleration push","Pressed back into the seat on the take-off roll",0,3,0.05],
+  ["wheelbase","Nose-to-main gear (m)","GA ≈ 2 · A320 ≈ 13 · 737-800 ≈ 16 · 777 ≈ 30",0.5,40,0.5],
+];
+const TS = [
+  ["tobiiRatio","Eye vs Head Tracking Ratio","1 = head only",0,1,0.01],
+  ["tobiiEyeResp","Eye Tracking Responsiveness","",0,1,0.01],
+  ["tobiiSensYaw","Head Tracking Sensitivity: Yaw","",0,1,0.01],
+  ["tobiiSensPitch","Head Tracking Sensitivity: Pitch","",0,1,0.01],
+  ["tobiiSensRoll2","Head Tracking Sensitivity: Roll","",0,1,0.01],
+  ["tobiiSensX","Head Tracking Sensitivity: Position X","Side to side",0,1,0.01],
+  ["tobiiSensY","Head Tracking Sensitivity: Position Y","Up and down",0,1,0.01],
+  ["tobiiSensZ","Head Tracking Sensitivity: Position Z","Leaning in and out",0,1,0.01],
+  ["tobiiLimX","Head Tracking Limit: Position X","mm",0,300,1],
+  ["tobiiLimY","Head Tracking Limit: Position Y","mm",0,300,1],
+  ["tobiiLimZ","Head Tracking Limit: Position Z","mm",0,300,1],
+  ["tobiiLimYaw","Head Tracking Limit: Yaw","Furthest the view turns left/right (degrees)",0,180,1],
+  ["tobiiLimPitch","Head Tracking Limit: Pitch","Furthest the view turns up/down (degrees)",0,90,1],
+  ["tobiiLimRoll","Head Tracking Limit: Roll","Furthest the view tilts (degrees)",0,90,1],
+  ["tobiiCenterStab","Center Stabilization","Dead zone around straight ahead",0,1,0.01],
+  ["tobiiBoost","Camera Boost Ratio","Extra turn the further you look round",0,1,0.01],
+  ["tobiiSmoothing","Smoothing (CameraFX extra)","Steadies the view when your head is still. Higher = steadier but slightly slower",0,1,0.01],
+];
+let S = null, saveT = null, lastEdit = 0;
+const $ = id => document.getElementById(id);
+$("sliders").innerHTML = SL.map(([k,l,h,mn,mx,st]) =>
+  `<div class="row"><label for="${k}">${l}<small>${h}</small></label><input type="range" id="${k}" min="${mn}" max="${mx}" step="${st}"><output id="o_${k}"></output></div>`).join("");
+
+$("tobiiSliders").innerHTML = TS.map(([k,l,h,mn,mx,st]) =>
+  `<div class="row"><label for="${k}">${l}<small>${h}</small></label><input type="range" id="${k}" min="${mn}" max="${mx}" step="${st}"><output id="o_${k}"></output></div>`).join("");
+function fmt(k,v){ return k==="wheelbase" ? v.toFixed(1) : k==="tobiiLimYaw"||k==="tobiiLimPitch"||k==="tobiiLimRoll" ? Math.round(v)+"°" : k.startsWith("tobiiLim") ? Math.round(v) : k.startsWith("tobii") ? v.toFixed(2) : Math.round(v*100)+"%"; }
+function render(){
+  for (const [k] of SL){ if (document.activeElement !== $(k)) $(k).value = S[k]; $("o_"+k).textContent = fmt(k,S[k]); }
+  for (const k of ["enabled","onlyInCockpit","invertPitch"]) $(k).checked = S[k];
+  for (const [k] of TS) { if (document.activeElement !== $(k)) $(k).value = S[k]; $("o_"+k).textContent = fmt(k,S[k]); }
+  $("tobiiAutoCenter").checked = S.tobiiAutoCenter;
+  if (document.activeElement !== $("headHotkey")) $("headHotkey").value = S.headHotkey;
+  if (document.activeElement !== $("recenterHotkey")) $("recenterHotkey").value = S.recenterHotkey;
+}
+function save(){
+  lastEdit = Date.now();
+  clearTimeout(saveT);
+  saveT = setTimeout(()=>fetch("/api/settings",{method:"POST",body:JSON.stringify(S)}), 150);
+}
+$("tobiiAutoCenter").addEventListener("change", e => { S.tobiiAutoCenter = e.target.checked; save(); });
+for (const [k] of TS) $(k).addEventListener("input", e => { S[k] = parseFloat(e.target.value); $("o_"+k).textContent = fmt(k,S[k]); save(); });
+$("headHotkey").addEventListener("change", e => { S.headHotkey = e.target.value.trim(); save(); });
+$("recenterHotkey").addEventListener("change", e => { S.recenterHotkey = e.target.value.trim(); save(); });
+$("recBtn").onclick = () => fetch("/api/recenter",{method:"POST"});
+$("joyRecBind").onclick = () => fetch("/api/bindjoy?target=recenter",{method:"POST"}).then(poll);
+$("joyRecClear").onclick = () => fetch("/api/bindjoy?target=recenter&clear=1",{method:"POST"}).then(poll);
+$("headBtn").onclick = () => fetch("/api/togglehead",{method:"POST"}).then(poll);
+$("joyBind").onclick = () => fetch("/api/bindjoy",{method:"POST"}).then(poll);
+$("joyClear").onclick = () => fetch("/api/bindjoy?clear=1",{method:"POST"}).then(poll);
+for (const [k] of SL) $(k).addEventListener("input", e => { S[k] = parseFloat(e.target.value); $("o_"+k).textContent = fmt(k,S[k]); save(); });
+for (const k of ["enabled","onlyInCockpit","invertPitch"]) $(k).addEventListener("change", e => { S[k] = e.target.checked; save(); });
+$("tBump").onclick = () => fetch("/api/test?kind=bump",{method:"POST"});
+$("tLurch").onclick = () => fetch("/api/test?kind=lurch",{method:"POST"});
+$("reset").onclick = async () => { S = await (await fetch("/api/settings?reset=1",{method:"POST"})).json(); render(); };
+$("fix").onclick = () => fetch("/api/fixtracking",{method:"POST"}).then(poll);
+$("quit").onclick = async () => { await fetch("/api/quit",{method:"POST"}); document.body.innerHTML = '<div class="wrap"><h1>CameraFX stopped.</h1><p class="sub">You can close this tab.</p></div>'; clearInterval(timer); };
+
+function bar(id, v, range, txt){
+  const f = Math.max(-1, Math.min(1, v/range)), el = $(id);
+  el.style.left = (f<0 ? 50+f*50 : 50)+"%"; el.style.width = Math.abs(f)*50+"%";
+  $("v"+id.slice(1)).textContent = txt;
+}
+async function poll(){
+  let st; try { st = await (await fetch("/api/state")).json(); } catch { $("simTxt").textContent="CameraFX isn't running"; $("simDot").className="dot err"; return; }
+  // Always follow the app's real settings (another tab, a hotkey or Claude may have changed them),
+  // except while you're in the middle of changing something here.
+  if (!S || Date.now() - lastEdit > 1500){ S = st.settings; render(); }
+  const t = st.telemetry, p = st.pose;
+  for (const k of ["headEnabled","joyDevice","joyButton","joyRecDevice","joyRecButton"]) S[k] = st.settings[k];
+  $("headBtn").textContent = S.headEnabled ? "Head tracking: ON" : "Head tracking: OFF";
+  $("headBtn").className = "toggle" + (S.headEnabled ? " on" : "");
+  $("headDot").className = "dot " + (st.headLive ? "ok" : st.tobiiOK ? "warn" : "err");
+  $("headTxt").textContent = st.headLive ? (st.headDirect ? "Tracking your head (Tobii connected directly)" : "Tracking your head (from Tobii Game Hub / opentrack)")
+    : st.tobiiOK ? "Tobii connected, but it can't see you right now" : (st.tobiiStatus || "Looking for the Tobii…");
+  $("hkErr").textContent = st.hotkeyErr || "";
+  const jt = (d,b) => d >= 0 ? "Joystick " + (d+1) + ", button " + (b+1) : "None";
+  $("joyTxt").textContent = st.joyBinding === "toggle" ? "Press a button now…" : jt(S.joyDevice, S.joyButton);
+  $("joyRecTxt").textContent = st.joyBinding === "recenter" ? "Press a button now…" : jt(S.joyRecDevice, S.joyRecButton);
+  $("simDot").className = "dot " + (st.fresh ? "ok" : st.connected ? "warn" : "err");
+  $("simTxt").textContent = st.fresh ? "Connected to MSFS" : st.connected ? "Connected – sim paused or loading" : (st.simError || "Waiting for MSFS…");
+  $("trkDot").className = "dot " + ({ok:"ok",warn:"warn",error:"err"}[st.tracking.level] || "");
+  $("trkTxt").textContent = st.tracking.message;
+  $("fixWrap").style.display = st.tracking.level === "ok" ? "none" : "";
+  const cam = Math.round(t.CameraState);
+  $("actDot").className = "dot " + (st.active ? "ok" : "");
+  $("actTxt").textContent = st.active ? "Effects running" : !S.enabled ? "Effects switched off" : (st.fresh && S.onlyInCockpit && cam!==2 && cam!==7) ? "Paused – not in cockpit view" : "Idle";
+  $("gs").textContent = st.fresh ? t.GroundSpeedKt.toFixed(0)+" kt" + (t.OnGround>0.5?" · on ground":" · airborne") : "–";
+  $("ax").textContent = st.fresh ? (t.AccelZ/32.174).toFixed(2)+" g" : "–";
+  $("surf").textContent = st.fresh && t.OnGround>0.5 ? st.surface : "–";
+  $("brk").textContent = st.fresh ? Math.round(Math.max(t.BrakeL,t.BrakeR)*100)+"% / "+Math.round(t.Spoilers*100)+"%" : "–";
+  bar("bY", p.Y, 20, p.Y.toFixed(1)+" mm");
+  bar("bZ", -p.Z, 50, (-p.Z).toFixed(1)+" mm");
+  bar("bP", p.Pitch, 0.08, (p.Pitch*57.3).toFixed(1)+"°");
+}
+const timer = setInterval(poll, 100); poll();
+</script>
+</body>
+</html>
