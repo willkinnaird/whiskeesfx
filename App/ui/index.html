@@ -555,7 +555,7 @@ function renderProfiles() {
 function drawProfiles() {
   const sel = P.profiles.find((p) => p.id === pSel) || {};
   paint("plist", P.profiles.map((p) => `<button class="pitem ${p.id === pSel ? "sel" : ""}" data-act="ppick" data-id="${esc(p.id)}">
-    <span class="n">${esc(p.name)}${p.active ? '<span class="tag">IN USE</span>' : ""}${p.changed ? '<span class="tag alt">EDITED</span>' : ""}</span>
+    <span class="n">${esc(p.name)}${p.id === pSel && pOnly ? '<span class="tag soft">FILTER</span>' : ""}${p.active ? '<span class="tag">IN USE</span>' : ""}${p.changed ? '<span class="tag alt">EDITED</span>' : ""}</span>
     <span class="small muted">${p.user ? "Yours" : p.generic ? "Fallback for anything unknown" : "Shipped"} · ${(p.airframes || []).length} airframe${(p.airframes || []).length === 1 ? "" : "s"}</span></button>`).join(""));
   $("pname").textContent = sel.name || "";
   $("pkind").textContent = sel.user ? "Your profile" : sel.generic ? "Used for any aircraft without its own profile" : "Shipped profile · your changes are kept separately and survive updates";
@@ -570,8 +570,8 @@ function drawAirframes() {
   const opts = (a) => `<option value="">Automatic${a.how === "assigned" ? "" : " (" + esc(profName(a.profile)) + ")"}</option>` +
     P.profiles.map((p) => `<option value="${esc(p.id)}" ${a.how === "assigned" && a.profile === p.id ? "selected" : ""}>${esc(p.name)}</option>`).join("");
   const how = (a) => a.how === "assigned" ? '<span class="tag alt">assigned</span>' : a.how === "none" ? '<span class="tag alt">no profile</span>' : '<span class="tag soft">auto</span>';
-  const head = `<div class="row" style="flex-wrap:wrap"><div class="grow" style="display:flex;flex-direction:column"><strong style="font-size:16px">Your airframes</strong>
-      <span class="small muted">${P.scanning ? "Looking through your Community folder…" : "Every aircraft in your Community folder, and the profile each one uses."}</span></div>
+  const head = `<div class="row" style="flex-wrap:wrap"><div class="grow" style="display:flex;flex-direction:column"><strong style="font-size:16px">${pOnly ? "Airframes using " + esc(profName(pSel)) : "Your airframes"}</strong>
+      <span class="small muted">${P.scanning ? "Looking through your Community folder…" : pOnly ? `${rows.length} of ${P.airframes.length} · click the profile again to see them all` : "Every aircraft in your Community folder, and the profile each one uses."}</span></div>
       <label class="row small"><input type="checkbox" data-act="ponly" ${pOnly ? "checked" : ""}> Only this profile</label>
       <input class="search" style="width:200px" type="search" id="pfilter" placeholder="Find an aircraft" aria-label="Find an aircraft" value="${esc(pFilter)}">
       <button class="btn small" data-act="rescan">Rescan</button></div>`;
@@ -664,7 +664,11 @@ document.addEventListener("click", async (ev) => {
   const t = ev.target.closest("[data-act]");
   if (!t || view !== "profiles") return;
   const a = t.dataset.act;
-  if (a === "ppick") { pSel = t.dataset.id; await loadProfiles(true); drawProfiles(); }
+  if (a === "ppick") { // first click: this profile and only its airframes; same profile again: all airframes
+    const id = t.dataset.id;
+    if (id === pSel && pOnly && pSub === "airframes") pOnly = false; else { pSel = id; pOnly = true; pSub = "airframes"; }
+    await loadProfiles(true); drawProfiles();
+  }
   else if (a === "psub") { pSub = t.dataset.v; if (pSub === "test" && !(P.tests || {}).testMode) await setTest({testMode: true, selected: (P.points[0] || {}).id}); else drawProfiles(); }
   else if (a === "testmode") { const on = !(P.tests || {}).testMode; await setTest({testMode: on, selected: on ? ((P.tests || {}).selected || (P.points[0] || {}).id) : (P.tests || {}).selected}); if (on) { pSub = "test"; drawProfiles(); } }
   else if (a === "ppoint" || a === "ptest") { pSub = "test"; await setTest({testMode: true, selected: t.dataset.id}); }
