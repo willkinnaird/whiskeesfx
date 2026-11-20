@@ -98,8 +98,8 @@ func (a *App) state(full bool) map[string]any {
 		"settings": map[string]any{
 			"theme": themeOr(a.cfg.Theme), "keepInTray": a.cfg.KeepInTray, "autoUpdate": a.cfg.AutoUpdate, "startWithWindows": a.startsWin,
 			"sourceIni": a.sourcePath(), "workDir": a.cfg.WorkDir, "community": a.cfg.Community, "repo": a.cfg.Repo,
-			"pkgModule":  installedPackageVersion(a.cfg.Community, "whiskeesfx-visualfx"),
-			"pkgEffects": installedPackageVersion(a.cfg.Community, "whiskeesfx-visualfx-effects"),
+			"pkgModule": a.pkgMod, "pkgEffects": a.pkgFx, "welcomed": a.cfg.Welcomed,
+			"workDirOK": a.workOK, "communityOK": a.commOK,
 		},
 	}
 	if full {
@@ -334,6 +334,50 @@ func routes() *http.ServeMux {
 		}()
 		return nil
 	})
+	post("/api/welcome", func(r *http.Request) error {
+		app.mu.Lock()
+		app.cfg.Welcomed = true
+		app.saveConfig()
+		app.mu.Unlock()
+		return nil
+	})
+	post("/api/install-packages", func(r *http.Request) error {
+		go func() {
+			setBusy("Installing…")
+			if err := app.installPackagesNow(setProgress); err != nil {
+				setProgress("Couldn't install the effects: " + err.Error())
+			}
+			setBusy("")
+			app.mu.Lock()
+			app.slowAt = time.Time{} // re-read the installed versions on the next check
+			app.mu.Unlock()
+		}()
+		return nil
+	})
+	post("/api/preset", func(r *http.Request) error {
+		var b struct{ Name string }
+		readBody(r, &b)
+		k := map[string]float64{"subtle": 0.6, "realistic": 1, "cinematic": 1.5}[b.Name]
+		if k == 0 {
+			return errf("unknown preset")
+		}
+		app.mu.Lock()
+		defer app.mu.Unlock()
+		g := app.cfg.Groups["*"]
+		if g == nil {
+			g = &GroupSetting{}
+			app.cfg.Groups["*"] = g
+		}
+		g.Strength, g.Off = k, false
+		for name, gs := range app.cfg.Groups { // a preset starts every group from its shipped strength
+			if name != "*" {
+				gs.Strength = 1
+			}
+		}
+		app.saveConfig()
+		app.composeLocked()
+		return nil
+	})
 	post("/api/bake", func(r *http.Request) error {
 		app.mu.Lock()
 		defer app.mu.Unlock()
@@ -366,4 +410,9 @@ func themeOr(t string) string {
 		return "auto"
 	}
 	return t
+}
+
+func dirExists(p string) bool {
+	fi, err := os.Stat(p)
+	return err == nil && fi.IsDir()
 }

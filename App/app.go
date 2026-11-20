@@ -40,6 +40,7 @@ type Config struct {
 	ManualProfile string                   `json:"manualProfile"` // "" = automatic
 	View          string                   `json:"view"`
 	Theme         string                   `json:"theme"` // auto, light, dark
+	Welcomed      bool                     `json:"welcomed"`
 	KeepInTray    bool                     `json:"keepInTray"`
 	AutoUpdate    bool                     `json:"autoUpdate"`
 	DevMode       bool                     `json:"devMode"`
@@ -76,6 +77,8 @@ type App struct {
 	startsWin bool
 	pkgMod    string
 	pkgFx     string
+	workOK    bool
+	commOK    bool
 	viewsOK   bool
 }
 
@@ -264,6 +267,8 @@ func (a *App) tick() {
 		a.startsWin = queryStartsWithWindows()
 		a.pkgMod = installedPackageVersion(a.cfg.Community, "whiskeesfx-visualfx")
 		a.pkgFx = installedPackageVersion(a.cfg.Community, "whiskeesfx-visualfx-effects")
+		a.workOK = dirExists(a.cfg.WorkDir) || dirExists(filepath.Dir(a.cfg.WorkDir))
+		a.commOK = dirExists(a.cfg.Community)
 	}
 	tip := "WhiskeesFX"
 	if a.active != nil {

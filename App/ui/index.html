@@ -79,6 +79,13 @@ h2{margin:0 0 10px;font-size:15px;font-weight:700}
 select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:7px 10px}
 .hidden{display:none!important}
 .warnline{color:var(--warntext);font-size:12px}
+#welcome{position:fixed;inset:0;background:var(--bg);overflow:auto;z-index:10;display:flex;justify-content:center;padding:48px 20px}
+#welcome .box{max-width:620px;width:100%;display:flex;flex-direction:column;gap:18px}
+#welcome h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-1px}
+.check{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.check .mark{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;background:var(--line2);color:var(--muted)}
+.check .mark.ok{background:var(--acc);color:var(--onacc)}.check .mark.bad{background:var(--acc2);color:var(--onacc)}
+.notes{white-space:pre-line}
 </style>
 </head>
 <body>
@@ -105,6 +112,7 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
     <div class="row"><button class="switch" data-act="master-off" id="masterSw" aria-label="All effects on or off"></button><span id="masterTxt"></span></div>
     <label class="field">Overall strength <span id="masterVal" class="mono"></span>
       <input type="range" min="0" max="200" step="5" data-act="master-strength" id="masterRange"></label>
+    <div class="field">Style<div class="seg" id="presetSeg"><button data-act="preset" data-v="subtle">Subtle</button><button data-act="preset" data-v="realistic">Realistic</button><button data-act="preset" data-v="cinematic">Cinematic</button></div></div>
     <div class="small muted">Changes reach the sim within 2 seconds. No restart.</div>
   </div>
   <div id="groupCards" style="display:contents"></div>
@@ -157,6 +165,17 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
     </div>
     <div><div class="label">Recent events</div><div id="events" class="events" style="margin-top:8px"></div></div>
   </aside>
+</section>
+
+<section id="welcome" class="hidden" aria-label="Welcome">
+  <div class="box">
+    <div class="logo" id="wLogo"></div>
+    <h1>Welcome to WhiskeesFX</h1>
+    <p class="muted" style="margin:0">Real-world weather and airflow effects for MSFS 2024. Let's check everything is in place: it takes a few seconds.</p>
+    <div id="wChecks" style="display:flex;flex-direction:column;gap:10px"></div>
+    <label class="row"><input type="checkbox" data-act="set" data-k="startWithWindows" id="wWin"> Start with Windows, in the tray, so aircraft profiles switch by themselves</label>
+    <div class="row"><button class="btn ok" data-act="welcome-done">Get started</button><span class="small muted">You can open this app any time from the tray icon.</span></div>
+  </div>
 </section>
 
 <script>
@@ -242,6 +261,8 @@ function render() {
   const b = [];
   if (s.paused) b.push(`<div class="banner"><span class="grow">${esc(s.message)}</span><button class="btn small" data-act="resume">Resume</button></div>`);
   else if (s.message) b.push(`<div class="banner"><span class="grow">${esc(s.message)}</span></div>`);
+  const un = s.update || {};
+  if ((un.appNew || un.dataNew) && !un.busy) b.push(`<div class="banner"><div class="grow" style="display:flex;flex-direction:column;gap:4px"><strong>WhiskeesFX ${esc(un.latest)} is ready</strong><span class="notes small">${esc(un.notes || "")}</span></div><button class="btn small ok" data-act="update">Update now</button></div>`);
   if (s.progress) b.push(`<div class="banner"><span class="grow">${esc(s.progress)}</span></div>`);
   if (p.generic && s.title) b.push(`<div class="banner"><span class="grow">No profile for “${esc(s.title)}” yet: using the generic one (the sim's standard N1, A321 positions).</span><button class="btn small" data-act="newprofile">New profile for this aircraft</button></div>`);
   paint("banners", b.join(""));
@@ -253,7 +274,25 @@ function render() {
     const v = String(s.tests[seg.dataset.test]);
     seg.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.v === v));
   });
+  renderWelcome();
   if (view === "basic") renderBasic(); else renderAdv();
+}
+
+function renderWelcome() {
+  const st = S.settings, show = !st.welcomed;
+  $("welcome").classList.toggle("hidden", !show);
+  if (!show) return;
+  if (!$("wLogo").innerHTML) $("wLogo").innerHTML = document.querySelector("header .logo").innerHTML;
+  const pk = st.pkgModule && st.pkgEffects;
+  const c = (ok, title, text, extra) => `<div class="check"><span class="mark ${ok === true ? "ok" : ok === false ? "bad" : ""}">${ok === true ? "✓" : ok === false ? "!" : "·"}</span><div style="display:flex;flex-direction:column;gap:4px"><strong>${esc(title)}</strong><span class="small muted">${text}</span>${extra || ""}</div></div>`;
+  paint("wChecks", [
+    c(st.workDirOK, "Microsoft Flight Simulator 2024", st.workDirOK ? "Found your sim's settings folder." : "Couldn't find MSFS 2024's folder. Has the sim been run at least once?"),
+    c(st.communityOK, "Community folder", esc(st.community)),
+    c(pk ? true : false, "Effects installed", pk ? `Module ${esc(st.pkgModule)} and effects ${esc(st.pkgEffects)} are in your Community folder.` : "The WhiskeesFX packages aren't in your Community folder yet.",
+      pk ? "" : `<div><button class="btn small" data-act="install-packages">Install them now</button></div>`),
+    c(S.sim.fresh ? true : null, "Sim connection", S.sim.fresh ? `Connected: ${esc(S.title || "aircraft loading")}` : "Start a flight and this turns green within a few seconds (not needed to finish setup)."),
+  ].join(""));
+  $("wWin").checked = st.startWithWindows;
 }
 
 function renderBasic() {
@@ -262,6 +301,8 @@ function renderBasic() {
   $("masterTxt").textContent = s.master.off ? "Paused" : "On";
   setRange("masterRange", Math.round(s.master.strength * 100));
   $("masterVal").textContent = Math.round(s.master.strength * 100) + "%";
+  const ms = s.master.strength, pr = ms === 0.6 ? "subtle" : ms === 1 ? "realistic" : ms === 1.5 ? "cinematic" : "";
+  document.querySelectorAll("#presetSeg button").forEach((b) => b.classList.toggle("on", b.dataset.v === pr));
   paint("groupCards", s.groups.map((g) => `
     <div class="card grp">
       <div class="row"><h2 class="grow" style="margin:0">${esc(nice(g.name))}</h2>
@@ -400,6 +441,9 @@ document.addEventListener("click", (ev) => {
   switch (a) {
     case "view": post("/api/settings", {view: t.dataset.v}); break;
     case "theme": post("/api/settings", {theme: t.dataset.v}); break;
+    case "preset": post("/api/preset", {Name: t.dataset.v}); break;
+    case "welcome-done": post("/api/welcome"); break;
+    case "install-packages": post("/api/install-packages"); break;
     case "hide": api("/api/hide", {}); break;
     case "quit": if (confirm("Quit WhiskeesFX? Effects keep working with the last settings; aircraft profiles won't switch until it runs again.")) api("/api/quit", {}); break;
     case "update": post("/api/update/apply"); break;

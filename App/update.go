@@ -386,3 +386,33 @@ func cleanupOldExe() {
 }
 
 func atoiSafe(s string) int { n, _ := strconv.Atoi(s); return n }
+
+// installPackagesNow: fetch the effect packages from the latest release and install them (first run, or repair).
+func (a *App) installPackagesNow(progress func(string)) error {
+	a.mu.Lock()
+	repo := a.cfg.Repo
+	a.mu.Unlock()
+	r, err := latestRelease(repo)
+	if err != nil {
+		return err
+	}
+	got := 0
+	for _, name := range []string{"whiskeesfx-visualfx.zip", "whiskeesfx-visualfx-effects.zip"} {
+		if u := r.asset(name); u != "" {
+			progress("Downloading " + name + "…")
+			if err := download(u, filepath.Join(dlDir(), r.Tag, name)); err != nil {
+				return err
+			}
+			got++
+		}
+	}
+	if got == 0 {
+		return fmt.Errorf("the latest release (%s) doesn't include the effect packages yet", r.Tag)
+	}
+	a.mu.Lock()
+	a.cfg.PendingPkgs = r.Tag
+	a.saveConfig()
+	a.mu.Unlock()
+	a.installPendingPackages(progress)
+	return nil
+}
