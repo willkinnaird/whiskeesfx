@@ -43,4 +43,8 @@ jobs:
           [ -z "$notes" ] && notes="WhiskeesFX $GITHUB_REF_NAME"
           files="dist/WhiskeesFX.exe dist/defaults.zip"
           for p in whiskeesfx-visualfx whiskeesfx-visualfx-effects; do [ -f "dist/$p.zip" ] && files="$files dist/$p.zip"; done
-          gh release create "$GITHUB_REF_NAME" $files --title "WhiskeesFX $GITHUB_REF_NAME" --notes "$notes"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" $files --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" $files --title "WhiskeesFX $GITHUB_REF_NAME" --notes "$notes"
+          fi
