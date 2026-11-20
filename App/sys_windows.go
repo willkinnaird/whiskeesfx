@@ -280,10 +280,10 @@ func makeIcon(hInst uintptr) uintptr {
 			d := dx*dx + dy*dy
 			i := (y*n + x) * 4
 			if d <= 15.5*15.5 {
-				b, g, r := byte(0x3B), byte(0xA9), byte(0xF2)
+				b, g, r := byte(0x4A), byte(0x5D), byte(0x2F)
 				// arc: a ring segment in the lower half
 				if d > 6.5*6.5 && d < 9.5*9.5 && dy > -2 {
-					b, g, r = 0x16, 0x11, 0x0E
+					b, g, r = 0xEA, 0xF1, 0xF4
 				}
 				xor[i], xor[i+1], xor[i+2], xor[i+3] = b, g, r, 0xFF
 			}
