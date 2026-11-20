@@ -52,3 +52,12 @@ Vortex sources: FAA wake turbulence briefing https://www.faa.gov/sites/faa.gov/f
 - NASA icing guide: Type II/IV fluids stay on during taxi and flow off under wind shear on the take-off roll; Type IV for rotation speeds of 100-110 kt or more. https://aircrafticing.grc.nasa.gov/1_2_3_1.html
 - TSB / AeroInside: reverse thrust blowing up snow and causing a whiteout on landing. https://www.aeroinside.com/3579/provincial-sf34-at-stephenville-on-jan-8th-2014-went-into-snow-drift-on-landing
 - Contrail / exhaust condensation basics (water vapour in exhaust condensing in cold air). https://en.wikipedia.org/wiki/Contrail
+
+## Wake vortices and wing vapour: reference video (20 Nov)
+"Emirates 777 wake vortex spectacular!" (flugsnug, youtube.com/watch?v=ViKYFsN3p24), picked by Whiskee as the target look.
+- Vortices: right behind the wingtip/flap edge the condensation is a clean, narrow, smooth TUBE (the low-pressure core),
+  not smoke. Further back it twists, thickens and breaks up into chaotic, wispy tufts.
+  -> vortex_near = the tube (dense, narrow, steady, ~1 s); vortex = the break-up (fast early growth, wander, corkscrew, wind).
+- Wing vapour: thicker and faster than ours, and it flickers at random, each wing on its own.
+  -> vapour faster (-65 m/s) and bigger; alpha x1.35 with a per-side flicker (0.1 to 1.1).
+Old values: VisualFX/visualfx_before_tube.ini.
