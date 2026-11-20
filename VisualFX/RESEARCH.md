@@ -81,3 +81,6 @@ Old values: VisualFX/visualfx_before_tube.ini.
   texture for a WFX_Ring material/effect. Camera-facing rings in a dense chain at low alpha (~0.1 each) read as
   a hollow beaded tube from any angle (see WFX_Ring_rope_mock.png). Do it in the same Dev Mode session as the
   heat-shimmer material fix (purple dots = missing material).
+- Same ring material also goes on the intake ground vortices ("tornados"): `intake_swirl` and
+  `snow_intake_vortex`. A real inlet vortex is the same thing stood on end: a hollow condensed tube from the
+  runway up into the intake, thin at the floor, widening into the lip. intake_swirl already has the bead pulse.
