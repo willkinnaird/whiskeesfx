@@ -31,7 +31,7 @@ jobs:
       - name: Build the app
         working-directory: App
         run: |
-          cp ../VisualFX/visualfx.ini defaults/visualfx.ini
+          mkdir -p defaults && cp ../VisualFX/visualfx.ini defaults/visualfx.ini
           GOOS=windows GOARCH=amd64 go build -trimpath \
             -ldflags "-s -w -H windowsgui -X main.version=${VER} -X main.defaultRepo=${GITHUB_REPOSITORY}" \
             -o ../dist/WhiskeesFX.exe .
