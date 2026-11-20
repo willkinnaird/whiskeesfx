@@ -39,6 +39,7 @@ type Config struct {
 	Groups        map[string]*GroupSetting `json:"groups"`
 	ManualProfile string                   `json:"manualProfile"` // "" = automatic
 	Assign        map[string]string        `json:"assign"`        // aircraft title -> profile id, chosen by you
+	Dismissed     map[string]bool          `json:"dismissed"`     // notices closed with their X
 	View          string                   `json:"view"`
 	Theme         string                   `json:"theme"` // auto, light, dark
 	Welcomed      bool                     `json:"welcomed"`
@@ -164,6 +165,9 @@ func (a *App) load() {
 	if a.cfg.Assign == nil {
 		a.cfg.Assign = map[string]string{}
 	}
+	if a.cfg.Dismissed == nil {
+		a.cfg.Dismissed = map[string]bool{}
+	}
 	if a.cfg.Repo == "" {
 		a.cfg.Repo = defaultRepo
 	}
@@ -193,12 +197,22 @@ func ensureDefaults() {
 	if !fileExists(filepath.Join(defaultsDir(), "visualfx.ini")) {
 		writeFileAtomic(filepath.Join(defaultsDir(), "visualfx.ini"), embeddedIni)
 	}
+	// Shipped profiles always match this app's copies (yours live in myprofiles and your edits are tweaks,
+	// so nothing of yours is touched): new ones appear, fixed ones update, retired ones go.
 	entries, _ := embeddedProfiles.ReadDir("profiles")
+	ship := map[string]bool{}
 	for _, e := range entries {
+		ship[e.Name()] = true
 		p := filepath.Join(defaultsDir(), "profiles", e.Name())
-		if !fileExists(p) {
-			b, _ := embeddedProfiles.ReadFile("profiles/" + e.Name())
+		b, _ := embeddedProfiles.ReadFile("profiles/" + e.Name())
+		if cur, err := os.ReadFile(p); err != nil || string(cur) != string(b) {
 			writeFileAtomic(p, b)
+		}
+	}
+	old, _ := filepath.Glob(filepath.Join(defaultsDir(), "profiles", "*.ini"))
+	for _, f := range old {
+		if !ship[filepath.Base(f)] {
+			os.Remove(f)
 		}
 	}
 }

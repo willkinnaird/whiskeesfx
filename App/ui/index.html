@@ -117,6 +117,8 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
 .check .mark{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;background:var(--line2);color:var(--muted)}
 .check .mark.ok{background:var(--acc);color:var(--onacc)}.check .mark.bad{background:var(--acc2);color:var(--onacc)}
 .notes{white-space:pre-line}
+.bx{border:0;background:transparent;color:inherit;font-size:16px;width:32px;height:32px;border-radius:8px;opacity:.7}
+.bx:hover{opacity:1;background:rgba(128,128,128,.15)}
 </style>
 </head>
 <body>
@@ -316,12 +318,13 @@ function render() {
   paint("chips", c.join(""));
   const b = [];
   if (s.paused) b.push(`<div class="banner"><span class="grow">${esc(s.message)}</span><button class="btn small" data-act="resume">Resume</button></div>`);
-  else if (s.message) b.push(`<div class="banner"><span class="grow">${esc(s.message)}</span></div>`);
+  else if (s.message && !dis["msg:" + s.message]) b.push(`<div class="banner"><span class="grow">${esc(s.message)}</span>${x("msg:" + s.message)}</div>`);
   const un = s.update || {};
-  if ((un.appNew || un.dataNew) && !un.busy) b.push(`<div class="banner"><div class="grow" style="display:flex;flex-direction:column;gap:4px"><strong>WhiskeesFX ${esc(un.latest)} is ready</strong><span class="notes small">${esc(un.notes || "")}</span></div><button class="btn small ok" data-act="update">Update now</button></div>`);
+  if ((un.appNew || un.dataNew) && !un.busy && !dis["update:" + un.latest]) b.push(`<div class="banner"><div class="grow" style="display:flex;flex-direction:column;gap:4px"><strong>WhiskeesFX ${esc(un.latest)} is ready</strong><span class="notes small">${esc(un.notes || "")}</span></div><button class="btn small ok" data-act="update">Update now</button>${x("update:" + un.latest)}</div>`);
   if (s.tests.testMode) b.push(`<div class="banner"><span class="grow"><strong>Test mode is on.</strong> Position dots are showing in the sim and every effect is paused.</span><button class="btn small" data-act="leave-test">Leave test mode</button></div>`);
-  if (s.progress) b.push(`<div class="banner"><span class="grow">${esc(s.progress)}</span></div>`);
-  if (p.generic && s.title) b.push(`<div class="banner"><span class="grow">No profile for “${esc(s.title)}” yet: using the generic one (the sim's standard N1, A321 positions).</span><button class="btn small" data-act="newprofile">New profile for this aircraft</button></div>`);
+  if (s.progress && !dis["p:" + s.progress]) b.push(`<div class="banner"><span class="grow">${esc(s.progress)}</span>${x("p:" + s.progress)}</div>`);
+  const dis = s.dismissed || {}, x = (k) => `<button class="bx" data-act="dismiss" data-k="${esc(k)}" aria-label="Close this notice" title="Close">✕</button>`;
+  if (p.generic && s.title && !dis["generic:" + s.title]) b.push(`<div class="banner"><span class="grow">No profile for “${esc(s.title)}” yet: using the generic one (the sim's standard N1, A321 positions).</span><button class="btn small" data-act="newprofile">New profile for this aircraft</button><button class="btn small" data-act="view" data-v="profiles">Assign a profile</button>${x("generic:" + s.title)}</div>`);
   paint("banners", b.join(""));
   const u = s.update || {};
   const updOn = u.appNew || u.dataNew;
@@ -499,6 +502,7 @@ document.addEventListener("click", (ev) => {
     case "view": post("/api/settings", {view: t.dataset.v}); break;
     case "theme": post("/api/settings", {theme: t.dataset.v}); break;
     case "preset": post("/api/preset", {Name: t.dataset.v}); break;
+    case "dismiss": post("/api/dismiss", {Key: t.dataset.k}); break;
     case "leave-test": post("/api/tests", Object.assign({}, S.tests, {testMode: false})); break;
     case "welcome-done": post("/api/welcome"); break;
     case "install-packages": post("/api/install-packages"); break;

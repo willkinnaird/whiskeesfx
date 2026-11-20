@@ -94,7 +94,7 @@ func (a *App) state(full bool) map[string]any {
 		"version": version, "view": a.cfg.View, "rev": len(a.cfg.Tweaks), "sim": sim, "states": states,
 		"title": a.title, "profile": active, "profiles": profs, "manualProfile": a.cfg.ManualProfile,
 		"groups": a.groupViews(evs), "master": master, "tests": a.tests, "paused": a.paused, "message": a.message,
-		"progress": getProgress(), "update": getUpdate(), "devMode": a.cfg.DevMode, "tweaks": len(a.cfg.Tweaks),
+		"progress": getProgress(), "dismissed": a.cfg.Dismissed, "update": getUpdate(), "devMode": a.cfg.DevMode, "tweaks": len(a.cfg.Tweaks),
 		"settings": map[string]any{
 			"theme": themeOr(a.cfg.Theme), "keepInTray": a.cfg.KeepInTray, "autoUpdate": a.cfg.AutoUpdate, "startWithWindows": a.startsWin,
 			"sourceIni": a.sourcePath(), "workDir": a.cfg.WorkDir, "community": a.cfg.Community, "repo": a.cfg.Repo,
@@ -473,6 +473,17 @@ func routes() *http.ServeMux {
 		app.cfg.Tweaks = keep
 		app.saveConfig()
 		app.composeLocked()
+		return nil
+	})
+	post("/api/dismiss", func(r *http.Request) error {
+		var b struct{ Key string }
+		if !readBody(r, &b) || b.Key == "" {
+			return errf("bad request")
+		}
+		app.mu.Lock()
+		app.cfg.Dismissed[b.Key] = true
+		app.saveConfig()
+		app.mu.Unlock()
 		return nil
 	})
 	post("/api/bake", func(r *http.Request) error {
