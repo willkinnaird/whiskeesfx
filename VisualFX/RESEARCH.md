@@ -84,3 +84,16 @@ Old values: VisualFX/visualfx_before_tube.ini.
 - Same ring material also goes on the intake ground vortices ("tornados"): `intake_swirl` and
   `snow_intake_vortex`. A real inlet vortex is the same thing stood on end: a hollow condensed tube from the
   runway up into the intake, thin at the floor, widening into the lip. intake_swirl already has the bead pulse.
+
+## Ring texture: how to do it properly (21 Nov, researched)
+- Dots on a circle (WFX_Ring) don't work: the mist material renders every particle as a soft puff and the sim
+  can't spawn enough per frame at approach speed to draw a crisp circle. Reverted the ropes to the puff rope.
+- The real way (SDK SimpleFX sample): a MaterialLib asset group in the same Dev Mode project as the effects, with
+  `MaterialLibs/<lib>/EngineSmoke.material`, `Library.xml`, and `Textures/vfx_smoke.png` + `.png.FLAGS`.
+  The Output node's <Material> then points at the new material's GUID. VFX materials use type CODE_DIFFUSE and
+  have a blend mode, opacity, UV options (Material Inspector, VFX context).
+- Plan: copy SimpleFX's material lib as a template, swap in VisualFX/textures/WFX_Ring.png, new GUID, add a
+  WFX_RingTex effect (WFX_Trail + that material), point preset.vortex_ring at it. Camera-facing ring particles
+  in a dense line = the stacked-circles look (see WFX_Ring_rope_mock.png).
+- Needs: the SDK samples (DevMode > Help > download samples, installs to <SDK>\Samples).
+- Same fix for the heat shimmer's purple dots (its material GUID came from an SDK example that isn't installed).
