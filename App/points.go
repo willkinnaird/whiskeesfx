@@ -67,7 +67,8 @@ var pointDefs = []PointDef{
 		Hint: "The APU exhaust outlet in the tail cone."},
 }
 
-var wingVapour = []string{"wing_vapour_1", "wing_vapour_2", "wing_vapour_3", "wing_vapour_4", "wing_vapour_5", "wing_vapour_6"}
+var wingVapour = []string{"wing_vapour_1", "wing_vapour_2", "wing_vapour_3", "wing_vapour_4", "wing_vapour_5", "wing_vapour_6",
+	"wing_vapour_7", "wing_vapour_8", "wing_vapour_9", "wing_vapour_10", "wing_vapour_11", "wing_vapour_12"}
 
 var storeDefaults = map[string]float64{"engine_radius": 1.1, "intake_z": 1.6, "nozzle_z": -3.2, "winglet_h": 2.4, "winglet_dx": 0, "winglet_dz": 0}
 
