@@ -21,8 +21,9 @@ type PointDef struct {
 	Globals                [3]string // for globals: key per axis ("" = not adjustable)
 	Effect                 string    // for effect: primary effect (followers get the same offset)
 	Followers              []string
-	Store                  string // for stored: key, e.g. "intake_z"
-	Axes                   string // which of x, y, z can be moved
+	Store                  string   // for stored: key, e.g. "intake_z"
+	Line                   []string // for line: effects spread evenly from the inner to the outer point (in order)
+	Axes                   string   // which of x, y, z can be moved
 	OutSign                float64
 }
 
@@ -46,6 +47,10 @@ var pointDefs = []PointDef{
 		Hint: "The very top of the winglet or sharklet (on a plain or raked tip, the tip itself), at its trailing edge. The vortex leaves from here."},
 	{ID: "wingtip_bottom", Label: "Wingtip · bottom", Group: "Wings", Anchor: "sides", Kind: "stored", Store: "winglet_h", Axes: "y",
 		Hint: "Where the winglet meets the wing. On a plain tip this sits just under the top dot."},
+	{ID: "le_inner", Label: "Leading edge · inner", Group: "Wings", Anchor: "sides", Kind: "line", Line: wingVapour, Axes: "xyz", OutSign: 1,
+		Hint: "On the wing's leading edge, just outboard of the engine pylon. The wing vapour sheet runs from here to the outer point."},
+	{ID: "le_outer", Label: "Leading edge · outer", Group: "Wings", Anchor: "sides", Kind: "line", Line: wingVapour, Axes: "xyz", OutSign: 1,
+		Hint: "On the leading edge near the tip, where the vapour sheet ends. Inner and outer together set the sheet's sweep angle."},
 	{ID: "flap_end", Label: "Flap · outer end", Group: "Wings", Anchor: "sides", Kind: "effect", Effect: "flap_vortex", Followers: []string{"flap_vortex_near"}, Axes: "xyz", OutSign: 1,
 		Hint: "The outboard end of the outer flap, at its trailing edge, with flaps down."},
 	{ID: "main_gear", Label: "Main gear", Group: "Gear", Anchor: "mains", Kind: "globals", Globals: [3]string{"main_gear_x", "", "main_gear_z"}, Axes: "xz", OutSign: -1,
@@ -57,6 +62,8 @@ var pointDefs = []PointDef{
 	{ID: "apu", Label: "APU exhaust", Group: "Tail", Anchor: "ref", Kind: "effect", Effect: "apu_steam", Axes: "xyz", OutSign: 1,
 		Hint: "The APU exhaust outlet in the tail cone."},
 }
+
+var wingVapour = []string{"wing_vapour_1", "wing_vapour_2", "wing_vapour_3", "wing_vapour_4", "wing_vapour_5", "wing_vapour_6"}
 
 var storeDefaults = map[string]float64{"engine_radius": 1.1, "intake_z": 1.6, "nozzle_z": -3.2, "winglet_h": 2.4}
 
@@ -198,6 +205,17 @@ func (a *App) pointViews(p *Profile, f *Ini) []PointView {
 			pv.Value = parseVec(s)
 			pv.Dot = pv.Value
 			pv.Changed = tweaked["effect."+d.Effect+"|offset"]
+		case "line":
+			e := d.Line[0]
+			if d.ID == "le_outer" {
+				e = d.Line[len(d.Line)-1]
+			}
+			s, _ := effective(f, "effect."+e, "offset")
+			pv.Value = parseVec(s)
+			pv.Dot = pv.Value
+			for _, n := range d.Line {
+				pv.Changed = pv.Changed || tweaked["effect."+n+"|offset"]
+			}
 		case "stored":
 			v := a.storeValue(p, d.Store)
 			pv.Changed = tweaked["@points|"+d.Store]
@@ -244,6 +262,24 @@ func (a *App) movePoint(p *Profile, f *Ini, id string, axis int, delta float64, 
 		v := pv.Value
 		v[axis] = nv
 		for _, e := range append([]string{d.Effect}, d.Followers...) {
+			a.setTweak("effect."+e, "offset", fmtVec(v), scope)
+		}
+	case "line":
+		// move one end, keep the other, and spread every effect in the line evenly between them
+		a0 := parseVec(func() string { s, _ := effective(f, "effect."+d.Line[0], "offset"); return s }())
+		a1 := parseVec(func() string { s, _ := effective(f, "effect."+d.Line[len(d.Line)-1], "offset"); return s }())
+		if d.ID == "le_inner" {
+			a0[axis] = nv
+		} else {
+			a1[axis] = nv
+		}
+		n := len(d.Line)
+		for i, e := range d.Line {
+			t := float64(i) / float64(n-1)
+			var v [3]float64
+			for k := 0; k < 3; k++ {
+				v[k] = a0[k] + (a1[k]-a0[k])*t
+			}
 			a.setTweak("effect."+e, "offset", fmtVec(v), scope)
 		}
 	case "stored":

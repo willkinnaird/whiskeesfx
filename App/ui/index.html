@@ -770,8 +770,8 @@ function drawPositions(sel) {
   paint("pbody", html);
 }
 // schematic drawings: positions of each point on a front and a side view (not to scale)
-const FRONT = {engine_centre:[400,190], engine_top:[400,156], engine_bottom:[400,224], pylon_top:[400,138], wingtip_top:[540,62,1], wingtip_bottom:[528,112,1], flap_end:[468,128,1], main_gear:[330,262], ground:[200,268,1], nose_gear:[280,262,1]};
-const SIDE = {intake_lip:[205,150,1], engine_centre:[252,150], nozzle:[300,150], engine_top:[252,132], engine_bottom:[252,168], nose_gear:[110,200,1], main_gear:[330,200], flap_end:[392,106], apu:[540,62,1], pylon_top:[268,112]};
+const FRONT = {engine_centre:[400,190], engine_top:[400,156], engine_bottom:[400,224], pylon_top:[400,138], wingtip_top:[540,62,1], wingtip_bottom:[528,112,1], flap_end:[468,128,1], le_inner:[432,126,1], le_outer:[515,88,1], main_gear:[330,262], ground:[200,268,1], nose_gear:[280,262,1]};
+const SIDE = {intake_lip:[205,150,1], engine_centre:[252,150], nozzle:[300,150], engine_top:[252,132], engine_bottom:[252,168], nose_gear:[110,200,1], main_gear:[330,200], flap_end:[392,106], le_inner:[292,112], le_outer:[352,104], apu:[540,62,1], pylon_top:[268,112]};
 function drawTestView(sel) {
   const t = P.tests || {};
   const dots = (map, quiet) => (P.points || []).filter((p) => map[p.id]).map((p) => {
