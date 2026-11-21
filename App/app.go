@@ -49,6 +49,7 @@ type Config struct {
 	KeepInTray    bool                     `json:"keepInTray"`
 	AutoUpdate    bool                     `json:"autoUpdate"`
 	DevMode       bool                     `json:"devMode"`
+	GitHubToken   string                   `json:"githubToken,omitempty"` // developer only: lets Publish write official profiles to the repo
 }
 
 type IgnoreRule struct {

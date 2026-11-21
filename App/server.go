@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -91,10 +92,10 @@ func (a *App) state(full bool) map[string]any {
 	sim := a.status
 	sim.Effects = nil
 	out := map[string]any{
-		"version": version, "view": a.cfg.View, "rev": len(a.cfg.Tweaks), "sim": sim, "states": states,
+		"version": version, "view": viewOr(a.cfg.View), "rev": len(a.cfg.Tweaks), "sim": sim, "states": states,
 		"title": a.title, "profile": active, "profiles": profs, "manualProfile": a.cfg.ManualProfile,
 		"groups": a.groupViews(evs), "master": master, "tests": a.tests, "paused": a.paused, "message": a.message,
-		"progress": getProgress(), "dismissed": a.cfg.Dismissed, "update": getUpdate(), "devMode": a.cfg.DevMode, "tweaks": len(a.cfg.Tweaks),
+		"progress": getProgress(), "dismissed": a.cfg.Dismissed, "update": getUpdate(), "devMode": a.cfg.DevMode, "hasToken": a.cfg.GitHubToken != "", "tweaks": len(a.cfg.Tweaks),
 		"settings": map[string]any{
 			"theme": themeOr(a.cfg.Theme), "onTop": a.cfg.OnTop, "keepInTray": a.cfg.KeepInTray, "autoUpdate": a.cfg.AutoUpdate, "startWithWindows": a.startsWin,
 			"sourceIni": a.sourcePath(), "workDir": a.cfg.WorkDir, "community": a.cfg.Community, "repo": a.cfg.Repo,
@@ -281,8 +282,11 @@ func routes() *http.ServeMux {
 		}
 		app.mu.Lock()
 		defer app.mu.Unlock()
-		if v, ok := b["view"].(string); ok && (v == "basic" || v == "advanced" || v == "profiles") {
+		if v, ok := b["view"].(string); ok && (v == "home" || v == "basic" || v == "advanced" || v == "profiles" || v == "whiskee") {
 			app.cfg.View = v
+		}
+		if v, ok := b["githubToken"].(string); ok && app.cfg.DevMode {
+			app.cfg.GitHubToken = strings.TrimSpace(v)
 		}
 		if v, ok := b["theme"].(string); ok && (v == "auto" || v == "light" || v == "dark") {
 			app.cfg.Theme = v
@@ -558,6 +562,43 @@ func routes() *http.ServeMux {
 		app.saveConfig()
 		return err
 	})
+	post("/api/publish", func(r *http.Request) error {
+		var b struct{ ID, Version, Note string }
+		readBody(r, &b)
+		app.mu.Lock()
+		if !app.cfg.DevMode {
+			app.mu.Unlock()
+			return errf("only Whiskee can publish official profiles (developer mode)")
+		}
+		p := app.profileByID(b.ID)
+		token, repo := app.cfg.GitHubToken, app.cfg.Repo
+		var file, id string
+		var err error
+		if p != nil {
+			id, file, err = app.bakeOfficial(p, b.Version, b.Note)
+		}
+		app.mu.Unlock()
+		if p == nil {
+			return errf("no such profile")
+		}
+		if err != nil {
+			return err
+		}
+		if token == "" {
+			return errf("add your GitHub token in Settings first")
+		}
+		if repo == "" {
+			repo = defaultRepo
+		}
+		if err := publishToGitHub(token, repo, "App/profiles/"+id+".ini", file,
+			fmt.Sprintf("Whiskee official: %s v%s", p.Name, strings.TrimPrefix(strings.TrimSpace(b.Version), "v"))); err != nil {
+			return err
+		}
+		app.mu.Lock()
+		app.message = fmt.Sprintf("Published %s v%s. It goes out to everyone with the next app update.", p.Name, strings.TrimPrefix(strings.TrimSpace(b.Version), "v"))
+		app.mu.Unlock()
+		return nil
+	})
 	post("/api/hide", func(r *http.Request) error {
 		hiding = true
 		go func() { time.Sleep(100 * time.Millisecond); closeWindow() }()
@@ -574,6 +615,13 @@ type strErr string
 
 func (e strErr) Error() string { return string(e) }
 func errf(s string) error      { return strErr(s) }
+
+func viewOr(v string) string {
+	if v == "" {
+		return "home"
+	}
+	return v
+}
 
 func themeOr(t string) string {
 	if t == "" {
