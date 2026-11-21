@@ -147,6 +147,44 @@ func (a *App) applyPointShifts(f *Ini, p *Profile) {
 	shift("nozzle_z", 2, func(n string) bool { return nozzle[n] }, 1)
 	// a bigger engine: the ground vortex starts lower
 	shift("engine_radius", 1, func(n string) bool { return n == "intake_swirl" || n == "snow_intake_vortex" }, -1)
+	// extra directions on markers that natively move one way only: shift the effects that hang off them
+	at := func(n string) string { v, _ := effective(f, "effect."+n, "at"); return strings.TrimSpace(v) }
+	for id, follows := range extraFollow {
+		for ax := 0; ax < 3; ax++ {
+			key := extraKey(id, ax)
+			d := a.storeValue(p, key)
+			if d == 0 || follows == nil {
+				continue
+			}
+			for _, sec := range effectSections(f) {
+				n := strings.TrimPrefix(sec, "effect.")
+				if !follows(n, at(n)) {
+					continue
+				}
+				if off, ok := effective(f, sec, "offset"); ok {
+					v := parseVec(off)
+					v[ax] += d
+					f.Set(sec, "offset", fmtVec(v))
+				}
+			}
+		}
+	}
+}
+
+// extraKey: the stored offset for a direction a marker doesn't natively move in ("intake_lip.dx").
+func extraKey(id string, axis int) string { return id + ".d" + string("xyz"[axis]) }
+
+// extraFollow: which effects move with a marker's extra directions (nil = only the dot moves).
+var extraFollow = map[string]func(name, anchor string) bool{
+	"intake_lip": func(n, _ string) bool { return strings.Contains(n, "intake_") },
+	"nozzle": func(n, _ string) bool {
+		return n == "exhaust_steam" || n == "heat_haze" || n == "heat_haze_asobo" || n == "engine_start_puff"
+	},
+	"engine_top":    nil,
+	"engine_bottom": func(n, _ string) bool { return n == "intake_swirl" || n == "snow_intake_vortex" },
+	"nose_gear":     func(_, a string) bool { return a == "nose" },
+	"main_gear":     func(_, a string) bool { return a == "mains" },
+	"ground":        nil,
 }
 
 type PointView struct {
@@ -187,8 +225,8 @@ func (a *App) pointViews(p *Profile, f *Ini) []PointView {
 	var out []PointView
 	for _, d := range pointDefs {
 		pv := PointView{ID: d.ID, Label: d.Label, Group: d.Group, Hint: d.Hint, Axes: d.Axes, Anchor: d.Anchor, OutSign: d.OutSign}
-		for i, ax := range "xyz" {
-			pv.Editable[i] = strings.ContainsRune(d.Axes, ax)
+		for i := range pv.Editable {
+			pv.Editable[i] = true // every marker moves all six ways (extra directions are stored offsets)
 		}
 		switch d.Kind {
 		case "globals":
@@ -238,6 +276,18 @@ func (a *App) pointViews(p *Profile, f *Ini) []PointView {
 				pv.Changed = pv.Changed || tweaked["@points|winglet_dx"] || tweaked["@points|winglet_dz"]
 			}
 		}
+		if _, ok := extraFollow[d.ID]; ok {
+			for i, ax := range "xyz" {
+				if strings.ContainsRune(d.Axes, ax) {
+					continue
+				}
+				e := a.storeValue(p, extraKey(d.ID, i))
+				pv.Value[i] = e
+				pv.Dot[i] += e
+				pv.Changed = pv.Changed || tweaked["@points|"+extraKey(d.ID, i)]
+			}
+		}
+		pv.Axes = "xyz"
 		out = append(out, pv)
 	}
 	return out
@@ -246,8 +296,29 @@ func (a *App) pointViews(p *Profile, f *Ini) []PointView {
 // movePoint applies a nudge (or a typed value) to a profile.
 func (a *App) movePoint(p *Profile, f *Ini, id string, axis int, delta float64, set *float64) error {
 	d := pointDef(id)
-	if d == nil || axis < 0 || axis > 2 || !strings.ContainsRune(d.Axes, rune("xyz"[axis])) {
+	if d == nil || axis < 0 || axis > 2 {
 		return fmt.Errorf("that point can't move that way")
+	}
+	if !strings.ContainsRune(d.Axes, rune("xyz"[axis])) {
+		if _, ok := extraFollow[d.ID]; !ok {
+			return fmt.Errorf("that point can't move that way")
+		}
+		scope := ""
+		if p != nil {
+			scope = p.ID
+		}
+		var cur float64
+		for _, v := range a.pointViews(p, f) {
+			if v.ID == id {
+				cur = v.Value[axis]
+			}
+		}
+		nv := cur + delta
+		if set != nil {
+			nv = *set
+		}
+		a.setTweak("@points", extraKey(d.ID, axis), fmtNum(round3(nv)), scope)
+		return nil
 	}
 	scope := ""
 	if p != nil {
