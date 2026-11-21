@@ -45,7 +45,7 @@ var pointDefs = []PointDef{
 		Hint: "Where the pylon meets the underside of the wing: the pylon vapour streams from here."},
 	{ID: "wingtip_top", Label: "Wingtip · top", Group: "Wings", Anchor: "sides", Kind: "effect", Effect: "wingtip_vortex", Followers: []string{"wingtip_vortex_near"}, Axes: "xyz", OutSign: 1,
 		Hint: "The very top of the winglet or sharklet (on a plain or raked tip, the tip itself), at its trailing edge. The vortex leaves from here."},
-	{ID: "wingtip_bottom", Label: "Wingtip · bottom", Group: "Wings", Anchor: "sides", Kind: "stored", Store: "winglet_h", Axes: "y",
+	{ID: "wingtip_bottom", Label: "Wingtip · bottom", Group: "Wings", Anchor: "sides", Kind: "stored", Store: "winglet_h", Axes: "xyz",
 		Hint: "Where the winglet meets the wing. On a plain tip this sits just under the top dot."},
 	{ID: "le_inner", Label: "Leading edge · inner", Group: "Wings", Anchor: "sides", Kind: "line", Line: wingVapour, Axes: "xyz", OutSign: 1,
 		Hint: "On the wing's leading edge, just outboard of the engine pylon. The wing vapour sheet runs from here to the outer point."},
@@ -69,7 +69,7 @@ var pointDefs = []PointDef{
 
 var wingVapour = []string{"wing_vapour_1", "wing_vapour_2", "wing_vapour_3", "wing_vapour_4", "wing_vapour_5", "wing_vapour_6"}
 
-var storeDefaults = map[string]float64{"engine_radius": 1.1, "intake_z": 1.6, "nozzle_z": -3.2, "winglet_h": 2.4}
+var storeDefaults = map[string]float64{"engine_radius": 1.1, "intake_z": 1.6, "nozzle_z": -3.2, "winglet_h": 2.4, "winglet_dx": 0, "winglet_dz": 0}
 
 func pointDef(id string) *PointDef {
 	for i := range pointDefs {
@@ -231,7 +231,11 @@ func (a *App) pointViews(p *Profile, f *Ini) []PointView {
 			case "intake_lip", "nozzle":
 				pv.Value[2], pv.Dot = v, [3]float64{0, 0, v}
 			case "wingtip_bottom":
-				pv.Value[1], pv.Dot = v, [3]float64{tip[0], tip[1] - v, tip[2]}
+				// winglet root: down by winglet_h from the tip, plus a sideways / fore-aft offset for canted or raked winglets
+				dx, dz := a.storeValue(p, "winglet_dx"), a.storeValue(p, "winglet_dz")
+				pv.Value = [3]float64{dx, v, dz}
+				pv.Dot = [3]float64{tip[0] + dx, tip[1] - v, tip[2] + dz}
+				pv.Changed = pv.Changed || tweaked["@points|winglet_dx"] || tweaked["@points|winglet_dz"]
 			}
 		}
 		out = append(out, pv)
@@ -287,6 +291,12 @@ func (a *App) movePoint(p *Profile, f *Ini, id string, axis int, delta float64, 
 			a.setTweak("effect."+e, "offset", fmtVec(v), scope)
 		}
 	case "stored":
+		store := d.Store
+		if d.ID == "wingtip_bottom" && axis != 1 {
+			store = [3]string{"winglet_dx", "", "winglet_dz"}[axis]
+			a.setTweak("@points", store, fmtNum(round3(nv)), scope)
+			return nil
+		}
 		if set == nil {
 			// moving the bottom dot down (or the winglet root down) makes the value bigger
 			if d.ID == "engine_bottom" || d.ID == "wingtip_bottom" {
@@ -296,7 +306,7 @@ func (a *App) movePoint(p *Profile, f *Ini, id string, axis int, delta float64, 
 		if (d.Store == "engine_radius" || d.Store == "winglet_h") && nv < 0 {
 			nv = 0
 		}
-		a.setTweak("@points", d.Store, fmtNum(round3(nv)), scope)
+		a.setTweak("@points", store, fmtNum(round3(nv)), scope)
 	}
 	return nil
 }
