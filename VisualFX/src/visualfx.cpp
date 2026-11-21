@@ -297,12 +297,12 @@ static void setEffect(EffectDef& d, const char* key, const char* val) {
 	}
 	else if (streq(key, "at")) {
 		d.setMask |= S_AT;
-		if (streq(val, "engines")) { d.anchor = A_ENGINES; d.engineParams = true; }
+		if (streq(val, "engines")) { d.anchor = A_ENGINES; if (!(d.setMask & S_EP)) d.engineParams = true; }
 		else if (streq(val, "mains")) d.anchor = A_MAINS;
 		else if (streq(val, "nose")) d.anchor = A_NOSE;
 		else if (streq(val, "wheels")) d.anchor = A_WHEELS;
-		else if (streq(val, "inner_engines")) { d.anchor = A_INNER; d.engineParams = true; }
-		else if (streq(val, "outer_engines")) { d.anchor = A_OUTER; d.engineParams = true; }
+		else if (streq(val, "inner_engines")) { d.anchor = A_INNER; if (!(d.setMask & S_EP)) d.engineParams = true; }
+		else if (streq(val, "outer_engines")) { d.anchor = A_OUTER; if (!(d.setMask & S_EP)) d.engineParams = true; }
 		else if (streq(val, "sides")) d.anchor = A_SIDES;   // left + right copy, offset x = distance out from the centreline
 		else d.anchor = A_REF;
 	} else if (streq(key, "when")) {
