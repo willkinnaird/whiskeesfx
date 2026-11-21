@@ -26,8 +26,12 @@ type Profile struct {
 	User    bool     `json:"user"` // lives in myprofiles (yours, never replaced by updates)
 	Generic bool     `json:"generic"`
 	File    string   `json:"file"`
-	ini     *Ini
-	replace [][2]string
+	// Official: one of Whiskee's own tuned profiles. Shipped with the app, read-only for users (they make a copy).
+	Official bool     `json:"official"`
+	Version  string   `json:"version"`
+	Notes    []string `json:"notes"`
+	ini      *Ini
+	replace  [][2]string
 }
 
 func loadProfile(path string, user bool) (*Profile, error) {
@@ -47,6 +51,14 @@ func loadProfile(path string, user bool) (*Profile, error) {
 			}
 		case "generic":
 			p.Generic = kv.Value == "1"
+		case "official":
+			p.Official = kv.Value == "1" && !user // only shipped profiles can be official
+		case "version":
+			p.Version = kv.Value
+		case "note":
+			if kv.Value != "" {
+				p.Notes = append(p.Notes, kv.Value)
+			}
 		}
 	}
 	if p.Name == "" {
@@ -235,6 +247,11 @@ func isAlnum(w string) bool {
 }
 
 // duplicateProfile copies a profile into your own folder under a new name (matching nothing until you assign it).
+func (p *Profile) basedOn() string {
+	v, _ := p.ini.Get("profile", "based_on")
+	return v
+}
+
 func duplicateProfile(src *Profile, name, dir string) (*Profile, error) {
 	os.MkdirAll(dir, 0755)
 	id := "my-" + slug(name)
@@ -250,6 +267,13 @@ func duplicateProfile(src *Profile, name, dir string) (*Profile, error) {
 		}
 	}
 	f.Delete("profile", "generic")
+	for _, k := range []string{"official", "version", "note"} {
+		for f.Delete("profile", k) {
+		}
+	}
+	if src.Official {
+		f.Set("profile", "based_on", src.Name+" (Whiskee official v"+src.Version+")")
+	}
 	if err := writeFileAtomic(path, []byte("# Copy of "+src.Name+", made in the WhiskeesFX app\n"+f.String())); err != nil {
 		return nil, err
 	}

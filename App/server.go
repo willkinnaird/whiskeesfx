@@ -77,11 +77,11 @@ func (a *App) state(full bool) map[string]any {
 	}
 	var profs []map[string]any
 	for _, p := range a.profiles {
-		profs = append(profs, map[string]any{"id": p.ID, "name": p.Name, "user": p.User, "generic": p.Generic, "match": p.Match})
+		profs = append(profs, map[string]any{"id": p.ID, "name": p.Name, "user": p.User, "generic": p.Generic, "match": p.Match, "official": p.Official})
 	}
 	active := map[string]any{}
 	if a.active != nil {
-		active = map[string]any{"id": a.active.ID, "name": a.active.Name, "generic": a.active.Generic, "user": a.active.User}
+		active = map[string]any{"id": a.active.ID, "name": a.active.Name, "generic": a.active.Generic, "user": a.active.User, "official": a.active.Official, "version": a.active.Version}
 	}
 	all := a.cfg.Groups["*"]
 	master := map[string]any{"off": all != nil && all.Off, "strength": 1.0}
@@ -425,6 +425,9 @@ func routes() *http.ServeMux {
 		if p == nil {
 			return errf("unknown profile")
 		}
+		if p.Official && !app.cfg.DevMode {
+			return errf("Whiskee's official profiles are read-only. Make your own copy to move the dots.")
+		}
 		f := app.settingsFor(p)
 		if f == nil {
 			return errf("no settings loaded")
@@ -437,8 +440,15 @@ func routes() *http.ServeMux {
 		return nil
 	})
 	post("/api/profile/duplicate", func(r *http.Request) error {
-		var b struct{ ID, Name string }
+		var b struct {
+			ID, Name string
+			Take     bool // the copy takes over every airframe using the original
+		}
 		readBody(r, &b)
+		var afs []Airframe
+		if b.Take {
+			afs, _, _ = airframes()
+		}
 		app.mu.Lock()
 		defer app.mu.Unlock()
 		src := app.profileByID(b.ID)
@@ -457,6 +467,23 @@ func routes() *http.ServeMux {
 		for _, t := range append([]Tweak(nil), app.cfg.Tweaks...) {
 			if t.Scope == src.ID {
 				app.cfg.Tweaks = append(app.cfg.Tweaks, Tweak{np.ID, t.Section, t.Key, t.Value})
+			}
+		}
+		if b.Take {
+			if app.cfg.Assign == nil {
+				app.cfg.Assign = map[string]string{}
+			}
+			titles := []string{app.title}
+			for _, af := range afs {
+				titles = append(titles, af.Title)
+			}
+			for _, t := range titles {
+				if t == "" {
+					continue
+				}
+				if id := app.cfg.Assign[t]; id == src.ID || (id == "" && pickProfile(app.profiles, t) == src) {
+					app.cfg.Assign[t] = np.ID
+				}
 			}
 		}
 		app.saveConfig()
@@ -567,6 +594,10 @@ type ProfileListItem struct {
 	Generic   bool     `json:"generic"`
 	Active    bool     `json:"active"`
 	Changed   bool     `json:"changed"`
+	Official  bool     `json:"official"`
+	Version   string   `json:"version"`
+	Notes     []string `json:"notes"`
+	BasedOn   string   `json:"basedOn"`
 	Airframes []string `json:"airframes"`
 }
 
@@ -616,7 +647,8 @@ func (a *App) profilesView(id string) map[string]any {
 	}
 	var profs []ProfileListItem
 	for _, p := range a.profiles {
-		it := ProfileListItem{ID: p.ID, Name: p.Name, User: p.User, Generic: p.Generic, Active: a.active == p, Changed: changed[p.ID]}
+		it := ProfileListItem{ID: p.ID, Name: p.Name, User: p.User, Generic: p.Generic, Active: a.active == p, Changed: changed[p.ID],
+			Official: p.Official, Version: p.Version, Notes: p.Notes, BasedOn: p.basedOn()}
 		for _, av := range list {
 			if av.Profile == p.ID && !av.Hidden {
 				it.Airframes = append(it.Airframes, av.Title)
