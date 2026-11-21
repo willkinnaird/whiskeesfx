@@ -1,0 +1,15 @@
+<VisualEffectLibrary Version="1.0.0">
+	<VisualEffect File="WingWater"/>
+	<VisualEffect File="GenericMist"/>
+	<VisualEffect File="GenericTrail"/>
+	<VisualEffect File="GenericRibbon"/>
+	<VisualEffect File="Marker"/>
+	<VisualEffect File="WFX_Mist"/>
+	<VisualEffect File="WFX_Trail"/>
+	<VisualEffect File="WFX_Droplets"/>
+	<VisualEffect File="WFX_HeatHaze"/>
+	<VisualEffect File="WFX_Ring"/>
+	<VisualEffect File="WFX_MistSafe"/>
+	<VisualEffect File="WFX_TrailSafe"/>
+	<VisualEffect File="WFX_DropletsSafe"/>
+</VisualEffectLibrary>

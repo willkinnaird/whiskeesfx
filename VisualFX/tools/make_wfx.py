@@ -51,6 +51,10 @@ EFFECTS = {   # name: (effect guid, kind, material, local space, capacity)
     "WFX_Trail":    ("{7B3E1F42-2C9D-4A70-8E51-0D4F6A2B9C13}", "particles", MIST, False, 5000),
     "WFX_Droplets": ("{A61C5E93-4F27-4D08-B3E6-91B2D7C40F55}", "particles", SPLASH, True, 1500),
     "WFX_HeatHaze": ("{E2B94D17-6A3C-4F85-9D10-3C7E5A8B2F69}", "heat", None, True, 0),
+    # 21 Nov: hollow tubes (vortex ropes, intake tornados). WFX_Trail, but each particle starts on a circle of
+    # radius gm_ring around the fore-aft axis and moves outward at gm_ring_speed, so a dense stream of small dots
+    # reads as stacked rings / a hollow tube from any angle. No custom texture needed.
+    "WFX_Ring":     ("{C3A85E21-7D49-4F06-B2E8-5A1D9C6F3B47}", "ring", MIST, False, 20000),
     # "Safe" twins: the same dials, built only from node types already proven in released MSFS 2024 effects.
     # No gravity-vector node (gravity pulls along the effect's own -y), no birth-velocity read-back,
     # no age node (age = life share x life), no spin, no glow. If a full effect fails to spawn, point the
@@ -73,6 +77,7 @@ DIALS = [  # name, default (defaults reproduce the old GenericMist look)
     ("gm_spin", 0.0),
     ("gm_rate", 160.0), ("gm_burst", 0.0), ("gm_burst_time", 0.5),
 ]
+RING_DIALS = [("gm_ring", 0.4), ("gm_ring_speed", 0.0), ("gm_ring_up", 0.0)]   # radius (m), outward speed (m/s), 1 = ring lies flat (vertical tube)
 
 PREFIX = ""
 nodes, positions = [], {}
@@ -179,15 +184,25 @@ def float3_in(link):
     return f"                <Float3In>{link or Z}, 0.000000, 0.000000, 0.000000</Float3In>\n"
 
 
-def build_particles(name, guid, material, local, capacity, full=True):
-    P = {n: param(n, d) for n, d in DIALS}
+def build_particles(name, guid, material, local, capacity, full=True, ring=False):
+    P = {n: param(n, d) for n, d in DIALS + (RING_DIALS if ring else [])}
     pid = attr("pid", "id")
     t = attr("t", "AgeOverLifetime")
 
-    # ---- start position: random in a box
-    pos = vec("pos", [mul("px", rand("rpx", -1, 1, pid), P["gm_spread_x"]),
-                      mul("py", rand("rpy", -1, 1, pid), P["gm_spread_y"]),
-                      mul("pz", rand("rpz", -1, 1, pid), P["gm_spread_z"])])
+    # ---- start position: random in a box (+ on a circle for the ring effect)
+    px = mul("px", rand("rpx", -1, 1, pid), P["gm_spread_x"])
+    py = mul("py", rand("rpy", -1, 1, pid), P["gm_spread_y"])
+    pz = mul("pz", rand("rpz", -1, 1, pid), P["gm_spread_z"])
+    if ring:
+        th = rand("rth", 0.0, 6.283185, pid)
+        rc, rs = trig("Cos", "rcos", th), trig("Sin", "rsin", th)
+        flat = P["gm_ring_up"]                       # 0: circle in the x-y plane (around fore-aft), 1: x-z plane
+        ry = mul("ry", rs, sub("rnotup", 1.0, flat))
+        rz = mul("rz", rs, flat)
+        px = add("rpx2", px, mul("rx", rc, P["gm_ring"]))
+        py = add("rpy2", py, mul("ryr", ry, P["gm_ring"]))
+        pz = add("rpz2", pz, mul("rzr", rz, P["gm_ring"]))
+    pos = vec("pos", [px, py, pz])
 
     # ---- start velocity: base direction + jitter + speed along a random direction in a cone
     def vj(axis):
@@ -198,6 +213,9 @@ def build_particles(name, guid, material, local, capacity, full=True):
                 + pin("InnerAngle", P["gm_cone_in"]) + pin("OuterAngle", P["gm_cone"])
                 + pin("RandSeed", pid) + pin("RandIndex", None, 77))
     vel0 = add("vel0", base, mul("vcone", cone, P["gm_speed"]))
+    if ring:   # outward from the centre line, so the ring widens with age
+        vel0 = add("vel0r", vel0, vec("vring", [mul("vrx", rc, P["gm_ring_speed"]), mul("vry", ry, P["gm_ring_speed"]),
+                                                  mul("vrz", rz, P["gm_ring_speed"])]))
 
     # ---- life and size at birth
     life = mul("life", rand("rlife", P["gm_life_min"], 1.0, pid), P["gm_life"])
@@ -347,7 +365,8 @@ def write():
         PREFIX = name + "/"
         nodes.clear(); positions.clear(); _y[0] = 0; _seed[0] = 0
         blocks = (build_heat(name, guid) if kind == "heat"
-                  else build_particles(name, guid, material, local, cap, full=(kind == "particles")))
+                  else build_particles(name, guid, material, local, cap, full=(kind in ("particles", "ring")),
+                                       ring=(kind == "ring")))
         doc = ('﻿<?xml version="1.0" encoding="UTF-8"?>\n\n<SimBase.Document Type="AceXML" version="1,0">\n'
                "    <Descr>AceXML Document</Descr>\n    <WorldBase.Flight>\n" + blocks + "".join(nodes)
                + "    </WorldBase.Flight>\n</SimBase.Document>\n")
