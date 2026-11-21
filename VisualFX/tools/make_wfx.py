@@ -41,6 +41,9 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
 Z = "{00000000-0000-0000-0000-000000000000}"
 MIST = "{ABF127FE-7F13-45AF-A31B-9A6FFD02C00F}"     # VFX_Water_Mist (the material all our approved effects use)
 SPLASH = "{E344CBC7-6293-478C-983C-F5DA49C6D62C}"   # VFX_Water_Splash
+# Our own material (MaterialLibs/whiskeesfx-materials/WFX_Ring.material): a soft ring with a clear middle, so each
+# camera-facing particle is a ring and a dense line of them reads as stacked circles / a hollow tube.
+RINGMAT = "{9D3B6E52-4A71-4C08-8F2D-1E6B5A7C3D94}"
 # From the SDK's StaticMesh / Heat Deform XML example.
 HEAT_MATERIAL = "{DE37F56D-442C-45AB-A325-4572668CE135}"
 HEAT_MESH = "{58F995B0-49DE-40FD-B839-881844D30EAD}"
@@ -55,6 +58,8 @@ EFFECTS = {   # name: (effect guid, kind, material, local space, capacity)
     # radius gm_ring around the fore-aft axis and moves outward at gm_ring_speed, so a dense stream of small dots
     # reads as stacked rings / a hollow tube from any angle. No custom texture needed.
     "WFX_Ring":     ("{C3A85E21-7D49-4F06-B2E8-5A1D9C6F3B47}", "ring", MIST, False, 20000),
+    # 21 Nov: WFX_Trail with our ring-texture material (world space).
+    "WFX_RingTex":  ("{F1C7A3D8-2B64-4E95-9A30-6D8E2F1B5C07}", "particles", RINGMAT, False, 20000),
     # "Safe" twins: the same dials, built only from node types already proven in released MSFS 2024 effects.
     # No gravity-vector node (gravity pulls along the effect's own -y), no birth-velocity read-back,
     # no age node (age = life share x life), no spin, no glow. If a full effect fails to spawn, point the

@@ -9,6 +9,7 @@
 	<VisualEffect File="WFX_Droplets"/>
 	<VisualEffect File="WFX_HeatHaze"/>
 	<VisualEffect File="WFX_Ring"/>
+	<VisualEffect File="WFX_RingTex"/>
 	<VisualEffect File="WFX_MistSafe"/>
 	<VisualEffect File="WFX_TrailSafe"/>
 	<VisualEffect File="WFX_DropletsSafe"/>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AssetPackage Version="1.2.0">
+	<ItemSettings>
+		<ContentType>MISC</ContentType>
+		<Title>WhiskeesFX VisualFX Effects</Title>
+		<Manufacturer/>
+		<Creator>Whiskee</Creator>
+	</ItemSettings>
+	<Flags>
+		<VisibleInStore>false</VisibleInStore>
+		<CanBeReferenced>false</CanBeReferenced>
+	</Flags>
+	<PackageOrderHint>CUSTOM_VFX</PackageOrderHint>
+	<AssetGroups>
+		<AssetGroup Name="ContentInfo">
+			<Type Version="0">ContentInfo</Type>
+			<Flags>
+				<FSXCompatibility>false</FSXCompatibility>
+			</Flags>
+			<AssetDir>PackageDefinitions\whiskeesfx-visualfx-effects\ContentInfo</AssetDir>
+			<OutputDir>ContentInfo\whiskeesfx-visualfx-effects</OutputDir>
+		</AssetGroup>
+		<AssetGroup Name="VisualFX">
+			<Type Version="0">VisualEffectLib</Type>
+			<Flags>
+				<FSXCompatibility>false</FSXCompatibility>
+			</Flags>
+			<AssetDir>PackageSources\VisualEffectLibs\whiskeesfx-visualfx\VisualFX\</AssetDir>
+			<OutputDir>VisualEffectLibs\whiskeesfx-visualfx\VisualFX\</OutputDir>
+		</AssetGroup>
+		<AssetGroup Name="WFXMaterials">
+			<Type Version="0">MaterialLib</Type>
+			<Flags>
+				<FSXCompatibility>false</FSXCompatibility>
+			</Flags>
+			<AssetDir>PackageSources\MaterialLibs\whiskeesfx-materials\</AssetDir>
+			<OutputDir>MaterialLibs\whiskeesfx-materials\</OutputDir>
+		</AssetGroup>
+	</AssetGroups>
+</AssetPackage>
