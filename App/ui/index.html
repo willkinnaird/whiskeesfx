@@ -276,7 +276,7 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
       <button class="btn" data-act="preset-prof" id="presetProfBtn">Reset my changes</button>
     </div>
     <div id="pnotes"></div>
-    <div class="seg" style="max-width:420px" id="psub"><button data-act="psub" data-v="airframes">Airframes</button><button data-act="psub" data-v="positions">Positions</button><button data-act="psub" data-v="test">Test mode</button></div>
+    <div class="seg" style="max-width:540px" id="psub"><button data-act="psub" data-v="airframes">Airframes</button><button data-act="psub" data-v="features">Features</button><button data-act="psub" data-v="positions">Positions</button><button data-act="psub" data-v="test">Test mode</button></div>
     <div id="pbody"></div>
   </main>
   <aside aria-label="Test mode">
@@ -726,7 +726,7 @@ function drawProfiles() {
   document.querySelectorAll('[data-act="pdup"],[data-act="preset-prof"],#psub').forEach((e) => e.classList.toggle("hidden", !!sel.hidden));
   if (sel.hidden) pSub = "airframes";
   document.querySelectorAll("#psub button").forEach((b) => b.classList.toggle("on", b.dataset.v === pSub));
-  if (pSub === "airframes") drawAirframes(); else if (pSub === "positions") drawPositions(sel); else drawTestView(sel);
+  if (pSub === "airframes") drawAirframes(); else if (pSub === "features") drawFeatures(sel); else if (pSub === "positions") drawPositions(sel); else drawTestView(sel);
   drawTestPanel(sel);
 }
 function drawAirframes() {
@@ -753,6 +753,16 @@ function drawAirframes() {
   paint("pbody", head + `<div class="card" style="padding:0;overflow:hidden"><div id="pafl">${list || '<div class="muted" style="padding:14px">No aircraft found yet.</div>'}</div></div>`);
   painted["pafl"] = list;
 }
+function drawFeatures(sel) {
+  const ro = sel.official && !(S && S.devMode);
+  const fs = P.features || [];
+  paint("pbody", `<div class="card" style="display:flex;flex-direction:column;gap:2px">
+    <div class="small muted" style="margin-bottom:6px">What this aircraft has. Switch off anything it doesn't, and those effects never play for it.${ro ? " This official profile is read-only: make your own copy to change it." : ""}</div>
+    ${fs.map((f) => `<div class="row" style="padding:10px 0;border-top:1px solid var(--line);align-items:flex-start;gap:14px">
+      <div class="grow" style="display:flex;flex-direction:column;gap:3px"><strong style="font-size:14px">${esc(f.label)}</strong><span class="small muted" style="line-height:1.45">${esc(f.hint)}</span></div>
+      <button class="switch ${f.on ? "on" : ""}" data-act="pfeature" data-id="${esc(f.id)}" data-on="${f.on ? 0 : 1}" ${ro ? "disabled" : ""} aria-label="${esc(f.label)} on or off" aria-pressed="${f.on}"></button></div>`).join("") || '<div class="muted">Nothing to switch for this profile.</div>'}
+  </div>`);
+}
 function drawPositions(sel) {
   const pts = P.points || [];
   const ro = sel.official && !(S && S.devMode);
@@ -770,8 +780,8 @@ function drawPositions(sel) {
   paint("pbody", html);
 }
 // schematic drawings: positions of each point on a front and a side view (not to scale)
-const FRONT = {engine_centre:[400,190], engine_top:[400,156], engine_bottom:[400,224], pylon_top:[400,138], wingtip_top:[540,62,1], wingtip_bottom:[528,112,1], flap_end:[468,128,1], le_inner:[432,126,1], le_outer:[515,88,1], main_gear:[330,262], ground:[200,268,1], nose_gear:[280,262,1]};
-const SIDE = {intake_lip:[205,150,1], engine_centre:[252,150], nozzle:[300,150], engine_top:[252,132], engine_bottom:[252,168], nose_gear:[110,200,1], main_gear:[330,200], flap_end:[392,106], le_inner:[292,112], le_outer:[352,104], apu:[540,62,1], pylon_top:[268,112]};
+const FRONT = {engine_centre:[400,190], engine_top:[400,156], engine_bottom:[400,224], pylon_top:[400,138], wingtip_top:[540,62,1], wingtip_bottom:[528,112,1], flap_end:[468,128,1], le_inner:[432,126,1], le_outer:[515,88,1], strake_in:[378,166], strake_out:[422,166,1], main_gear:[330,262], ground:[200,268,1], nose_gear:[280,262,1]};
+const SIDE = {intake_lip:[205,150,1], engine_centre:[252,150], nozzle:[300,150], engine_top:[252,132], engine_bottom:[252,168], nose_gear:[110,200,1], main_gear:[330,200], flap_end:[392,106], le_inner:[292,112], le_outer:[352,104], strake_in:[226,136], strake_out:[232,141,1], apu:[540,62,1], pylon_top:[268,112]};
 function drawTestView(sel) {
   const t = P.tests || {};
   const dots = (map, quiet) => (P.points || []).filter((p) => map[p.id]).map((p) => {
@@ -844,6 +854,7 @@ document.addEventListener("click", async (ev) => {
     else if (id === pSel && pOnly && pSub === "airframes") pOnly = false; else { pSel = id; pOnly = true; pSub = "airframes"; }
     await loadProfiles(true); drawProfiles();
   }
+  else if (a === "pfeature") { const r = await api("/api/feature", {Profile: pSel, ID: t.dataset.id, On: t.dataset.on === "1"}); if (r && r.ok === false && r.error) alert(r.error); await loadProfiles(true); drawProfiles(); }
   else if (a === "psub") { pSub = t.dataset.v; if (pSub === "test" && !(P.tests || {}).testMode) await setTest({testMode: true, selected: (P.points[0] || {}).id}); else drawProfiles(); }
   else if (a === "testmode") { const on = !(P.tests || {}).testMode; await setTest({testMode: on, selected: on ? ((P.tests || {}).selected || (P.points[0] || {}).id) : (P.tests || {}).selected}); if (on) { pSub = "test"; drawProfiles(); } }
   else if (a === "ppoint" || a === "ptest") { pSub = "test"; await setTest({testMode: true, selected: t.dataset.id}); }

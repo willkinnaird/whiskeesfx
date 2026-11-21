@@ -562,6 +562,27 @@ func routes() *http.ServeMux {
 		app.saveConfig()
 		return err
 	})
+	post("/api/feature", func(r *http.Request) error {
+		var b struct {
+			Profile, ID string
+			On          bool
+		}
+		readBody(r, &b)
+		app.mu.Lock()
+		defer app.mu.Unlock()
+		p := app.profileByID(b.Profile)
+		if p == nil {
+			return errf("no such profile")
+		}
+		if p.Official && !app.cfg.DevMode {
+			return errf("Whiskee's official profiles are read-only. Make your own copy to change its features.")
+		}
+		if !app.setFeature(p, b.ID, b.On) {
+			return errf("unknown feature")
+		}
+		app.saveConfig()
+		return nil
+	})
 	post("/api/publish", func(r *http.Request) error {
 		var b struct{ ID, Version, Note string }
 		readBody(r, &b)
@@ -719,6 +740,7 @@ func (a *App) profilesView(id string) map[string]any {
 		if f := a.settingsFor(sel); f != nil {
 			out["selected"] = sel.ID
 			out["points"] = a.pointViews(sel, f)
+			out["features"] = a.featureViews(f)
 		}
 	}
 	return out
