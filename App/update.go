@@ -283,7 +283,12 @@ func (a *App) installPendingPackages(progress func(string)) {
 		if !fileExists(z) {
 			continue
 		}
-		progress("Installing " + strings.TrimSuffix(name, ".zip") + "…")
+		pkg := strings.TrimSuffix(name, ".zip")
+		if have, got := installedPackageVersion(comm, pkg), zipPackageVersion(z); have != "" && got != "" && newer(have, got) {
+			// a newer build is already installed (e.g. Whiskee's own Dev Mode build): never downgrade it
+			continue
+		}
+		progress("Installing " + pkg + "…")
 		if err := installPackage(z, comm); err != nil {
 			progress("Install failed: " + err.Error())
 			return
@@ -326,6 +331,30 @@ func installPackage(zipPath, community string) error {
 		os.RemoveAll(old)
 	}
 	return nil
+}
+
+// zipPackageVersion reads package_version from the manifest.json inside a release zip ("" if none).
+func zipPackageVersion(z string) string {
+	r, err := zip.OpenReader(z)
+	if err != nil {
+		return ""
+	}
+	defer r.Close()
+	for _, f := range r.File {
+		if strings.Count(strings.Trim(f.Name, "/"), "/") == 1 && strings.HasSuffix(f.Name, "/manifest.json") {
+			rc, err := f.Open()
+			if err != nil {
+				return ""
+			}
+			var m struct {
+				V string `json:"package_version"`
+			}
+			json.NewDecoder(rc).Decode(&m)
+			rc.Close()
+			return m.V
+		}
+	}
+	return ""
 }
 
 // installedPackageVersion reads package_version from a Community package's manifest.json.
