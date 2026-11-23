@@ -129,6 +129,8 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
 .bx{border:0;background:transparent;color:inherit;font-size:16px;width:32px;height:32px;border-radius:8px;opacity:.7}
 .bx:hover{opacity:1;background:rgba(128,128,128,.15)}
 [role=tab].on .wk{background:none;-webkit-text-fill-color:currentColor;color:inherit;animation:none}
+#setv{padding:22px 26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;align-items:start;max-width:1040px}
+#setv .wkpub{grid-column:1/-1}
 #home{padding:22px 26px;display:flex;flex-direction:column;gap:16px;max-width:920px}
 .hero{border-radius:18px;padding:22px 24px;background:radial-gradient(120% 140% at 0% 0%,color-mix(in srgb,var(--acc) 22%,var(--panel)) 0%,var(--panel) 55%);border:1px solid var(--line);display:flex;flex-wrap:wrap;gap:22px;align-items:center}
 .hero h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.8px}
@@ -159,10 +161,10 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
     <button role="tab" data-act="view" data-v="basic" id="tabBasic">Basic</button>
     <button role="tab" data-act="view" data-v="advanced" id="tabAdv">Advanced</button>
     <button role="tab" data-act="view" data-v="profiles" id="tabProf">Profiles</button>
-    <button role="tab" data-act="view" data-v="whiskee" id="tabWk"><span class="wk">Whiskee</span></button>
+    <button role="tab" data-act="view" data-v="settings" id="tabSet">Settings</button>
   </div>
   <button class="btn acc hidden" id="updBtn" data-act="update">Update</button>
-  <button class="btn" data-act="drawer" aria-controls="drawer" aria-expanded="false" id="setBtn">⚙ Settings</button>
+  <button class="btn" data-act="hide" id="hideBtn">Hide to tray</button>
 </header>
 <div id="uiErr" class="banner hidden" role="alert"></div>
 <div id="banners"></div>
@@ -176,6 +178,9 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
       <h1 id="hName">No aircraft yet</h1>
       <div id="hProf"></div>
       <span class="small muted" id="hTitle"></span>
+      <div class="row hidden" id="hPick" style="flex-wrap:wrap;gap:8px;padding-top:8px;border-top:1px solid var(--line)"><span class="small muted grow">Wrong engines or wingtips?</span>
+        <select id="hSel" aria-label="Profile for this aircraft" style="font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--line2);background:var(--bg);color:var(--text);min-width:240px"></select>
+        <label class="row small" style="gap:6px"><input type="checkbox" id="hRem" checked> Remember for this aircraft</label></div>
     </div>
     <div id="hStats" style="display:grid;grid-template-columns:repeat(2,minmax(96px,1fr));gap:8px"></div>
   </div>
@@ -210,18 +215,23 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
   </div>
 </section>
 
-<div id="scrim" class="hidden" data-act="drawer"></div>
-<aside id="drawer" aria-label="Settings" aria-hidden="true">
-  <div class="row"><h2 class="grow" style="margin:0;font-size:18px">Settings</h2><button class="bx" data-act="drawer" aria-label="Close settings" style="font-size:16px">✕</button></div>
-    <label class="row"><input type="checkbox" data-act="set" data-k="startWithWindows" id="sWin"> Start with Windows (in the tray)</label>
-    <label class="row"><input type="checkbox" data-act="set" data-k="onTop" id="sTop"> Keep this window on top of the sim (MSFS windowed or borderless)</label>
-    <label class="row"><input type="checkbox" data-act="set" data-k="keepInTray" id="sTray"> Keep running in the tray when the window closes</label>
-    <label class="row"><input type="checkbox" data-act="set" data-k="autoUpdate" id="sUpd"> Check for updates automatically</label>
+<section id="setv" class="hidden" aria-label="Settings">
+  <div class="card grp"><h2>App</h2>
     <div class="field">Theme<div class="seg" id="themeSeg"><button data-act="theme" data-v="auto">Match Windows</button><button data-act="theme" data-v="light">Light</button><button data-act="theme" data-v="dark">Dark</button></div></div>
-    <div class="small muted" id="verLine"></div>
-    <div class="row"><button class="btn small" data-act="check">Check for updates</button><button class="btn small" data-act="quit">Quit WhiskeesFX</button></div>
-  
-    <div class="row"><button class="btn small" data-act="hide" id="hideBtn">Hide to tray</button></div>
+    <label class="row"><input type="checkbox" data-act="set" data-k="onTop" id="sTop"> Keep this window on top of the sim (MSFS windowed or borderless)</label>
+    <label class="row"><input type="checkbox" data-act="set" data-k="startWithWindows" id="sWin"> Start with Windows (in the tray)</label>
+    <label class="row"><input type="checkbox" data-act="set" data-k="keepInTray" id="sTray"> Keep running in the tray when the window closes</label>
+    <div class="row"><button class="btn small" data-act="quit">Quit WhiskeesFX</button></div>
+  </div>
+  <div class="card grp"><h2>Updates</h2>
+    <label class="row"><input type="checkbox" data-act="set" data-k="autoUpdate" id="sUpd"> Update automatically</label>
+    <div class="small" id="verLine"></div>
+    <div class="row"><button class="btn small" data-act="check">Check for updates</button></div>
+  </div>
+  <div class="card grp"><h2>Aircraft memory</h2>
+    <div class="small muted">Aircraft you've chosen a profile for. Forget one to go back to automatic.</div>
+    <div id="memList"></div>
+  </div>
   <div class="wkpub hidden" id="pubBox">
     <div class="row" style="gap:8px"><span class="seal" aria-hidden="true">✓</span><span class="wk" style="font-size:14px">Publish official profile</span><span class="label">Developer only</span></div>
     <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:8px">
@@ -236,7 +246,7 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
       <div class="row"><input id="pubTok" type="password" autocomplete="off" placeholder="github_pat_…" style="flex:1;font:inherit;padding:8px;border-radius:8px;border:1px solid var(--line2);background:var(--bg);color:var(--text)"><button class="btn small" data-act="savetoken">Save</button></div>
     </details>
   </div>
-</aside>
+</section>
 
 <!-- ADVANCED -->
 <section id="adv" class="hidden" aria-label="Advanced settings">
@@ -273,15 +283,16 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
     <div class="row" style="flex-wrap:wrap;align-items:flex-end" id="phead">
       <div class="grow" style="display:flex;flex-direction:column;gap:3px"><span class="small muted" id="pkind"></span><h1 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.5px" id="pname"></h1></div>
       <button class="btn" data-act="pdup">Duplicate</button>
+      <button class="btn" data-act="pdefault" id="pDefBtn">★ Default</button>
       <button class="btn" data-act="preset-prof" id="presetProfBtn">Reset my changes</button>
     </div>
     <div id="pnotes"></div>
-    <div class="seg" style="max-width:540px" id="psub"><button data-act="psub" data-v="airframes">Airframes</button><button data-act="psub" data-v="features">Features</button><button data-act="psub" data-v="positions">Positions</button><button data-act="psub" data-v="test">Test mode</button></div>
+    <div class="seg" style="max-width:540px" id="psub"><button data-act="psub" data-v="features">Features</button><button data-act="psub" data-v="positions">Positions</button><button data-act="psub" data-v="airframes">Aircraft</button></div>
     <div id="pbody"></div>
   </main>
   <aside aria-label="Test mode">
-    <div class="row"><strong class="grow" style="font-size:15px">Test mode</strong><button class="switch" data-act="testmode" id="testSw" aria-label="Test mode on or off"></button></div>
-    <div class="small muted" id="testNote">Dots appear in the sim at every position (effects pause). Pick one and nudge it until it sits on the aircraft.</div>
+    <div class="row"><strong class="grow" style="font-size:15px">Show in sim</strong><button class="switch" data-act="testmode" id="testSw" aria-label="Show position dots in the sim"></button></div>
+    <div class="small muted" id="testNote">Dots appear in the sim at every position (effects pause). Pick one and nudge it until it sits on the aircraft; the numbers in Positions update as you go.</div>
     <div id="testPanel"></div>
   </aside>
 </section>
@@ -364,16 +375,18 @@ function render() {
   view = s.view || "home";
   $("home").classList.toggle("hidden", view !== "home");
   $("tabHome").classList.toggle("on", view === "home");
-  $("tabWk").classList.toggle("on", view === "whiskee");
+  if (view === "whiskee") view = "profiles";
+  $("tabSet").classList.toggle("on", view === "settings");
+  $("setv").classList.toggle("hidden", view !== "settings");
   $("basic").classList.toggle("hidden", view !== "basic");
   $("adv").classList.toggle("hidden", view !== "advanced");
-  $("profv").classList.toggle("hidden", view !== "profiles" && view !== "whiskee");
+  $("profv").classList.toggle("hidden", view !== "profiles");
   $("tabBasic").classList.toggle("on", view === "basic");
   $("tabAdv").classList.toggle("on", view === "advanced");
   $("tabProf").classList.toggle("on", view === "profiles");
   $("hideBtn").classList.toggle("hidden", !s.settings.keepInTray);
   const p = s.profile || {};
-  paint("prof", `<span class="dot ${s.sim.fresh ? "playing" : ""}"></span><span class="muted">Aircraft</span>${p.official ? `<span class="seal" aria-hidden="true">✓</span><strong class="wk">${esc(p.name)}</strong>` : `<strong>${esc(p.name || "none")}</strong>`}<span class="muted">· ${s.manualProfile ? "chosen by you" : "auto"}</span>`);
+  paint("prof", `<span class="dot ${s.sim.fresh ? "playing" : ""}"></span><span class="muted">Aircraft</span>${!s.title ? "<strong>none loaded</strong>" : p.generic ? "<strong>not supported yet</strong>" : p.official ? `<span class="seal" aria-hidden="true">✓</span><strong class="wk">${esc(p.name)}</strong>` : `<strong>${esc(p.name)}</strong>`}<span class="muted">· ${s.manualProfile ? "chosen by you" : "auto"}</span>`);
   const sim = s.sim, c = [];
   if (!sim.fresh) c.push(`<span class="chip">Sim not running</span>`);
   else {
@@ -404,7 +417,7 @@ function render() {
   });
   renderWelcome();
   renderSettings();
-  if (view === "home") renderHome(); else if (view === "basic") renderBasic(); else if (view === "advanced") renderAdv(); else renderProfiles();
+  if (view === "home") renderHome(); else if (view === "basic") renderBasic(); else if (view === "advanced") renderAdv(); else if (view === "profiles") renderProfiles();
 }
 
 function renderWelcome() {
@@ -456,6 +469,9 @@ function renderSettings() {
   const u = s.update || {};
   $("verLine").textContent = `App ${s.version} · effects ${s.settings.pkgEffects || "not installed"} · module ${s.settings.pkgModule || "not installed"}` +
     (u.latest ? ` · latest ${u.latest}` : "") + (u.error ? ` · update check: ${u.error}` : "");
+  const mem = Object.entries(s.assign || {});
+  const pn = (id) => ((s.profiles || []).find((p) => p.id === id) || {}).name || id;
+  paint("memList", mem.length ? mem.map(([t, id]) => `<div class="row" style="padding:8px 0;border-top:1px solid var(--line)"><span class="grow" style="display:flex;flex-direction:column"><strong style="font-size:13px">${esc(t)}</strong><span class="small muted">→ ${esc(pn(id))}</span></span><button class="btn small" data-act="forget" data-t="${esc(t)}">Forget</button></div>`).join("") : '<div class="small muted">Nothing yet: every aircraft is matched automatically.</div>');
   $("pubBox").classList.toggle("hidden", !s.devMode);
   if (s.devMode) {
     const sel = $("pubProf"), ap = s.profile || {}, firstOff = ((s.profiles || []).find((p) => p.official) || {}).id;
@@ -484,11 +500,18 @@ function renderHome() {
   }
   if (s.master.off) c.push(chip("All effects paused", "warn"));
   paint("hChips", c.join(""));
-  $("hName").textContent = s.title ? (p.generic ? s.title : p.name) : "No aircraft yet";
+  $("hName").textContent = s.title ? (p.generic ? "Not supported yet" : p.name) : "No aircraft yet";
   paint("hProf", !s.title ? `<span class="small muted">Load a flight and the right profile is picked automatically.</span>` :
     p.official ? `<span class="row" style="gap:8px"><span class="seal" aria-hidden="true">✓</span><span class="wk" style="font-size:13px">Whiskee official${p.version ? " · v" + esc(p.version) : ""}</span></span>`
     : `<span class="small"><strong>${esc(p.name || "")}</strong> <span class="muted">${p.user ? "· your profile" : p.generic ? "· generic fallback" : "· shipped profile"}</span></span>`);
-  paint("hTitle", s.title ? `${esc(s.title)} · ${s.manualProfile ? "chosen by you" : "matched automatically"} · <button data-act="view" data-v="${p.official ? "whiskee" : "profiles"}" style="font:inherit;border:0;background:none;color:var(--acc);font-weight:700;padding:0;cursor:pointer">Change</button>` : "");
+  const how = !s.title ? "" : s.manualProfile ? "chosen for this flight" : (s.assign || {})[s.title] ? "remembered for this aircraft" : p.isDefault ? "default for the " + esc((p.type || "").replace("Fenix ", "")) : "matched automatically";
+  paint("hTitle", s.title ? (s.supported ? `${esc(s.title)} · ${how}` : `<span style="color:var(--acc2);font-weight:700">${esc(s.title)} isn't supported yet.</span> WhiskeesFX supports the Fenix A319, A320 and A321 for now, so effects are off.`) : "");
+  $("hPick").classList.toggle("hidden", !s.title || !s.supported);
+  if (s.title && s.supported) {
+    const sel = $("hSel"), opts = (s.profiles || []).filter((q) => !q.generic && (!p.type || q.type === p.type || !q.type)).map((q) => `<option value="${esc(q.id)}">${esc(q.name)}${q.official ? " (Whiskee)" : q.user ? " (yours)" : ""}</option>`).join("");
+    if (sel.dataset.o !== opts) { sel.innerHTML = opts; sel.dataset.o = opts; }
+    if (document.activeElement !== sel) sel.value = p.id;
+  }
   const st = (k, v, u) => `<div class="stat"><span class="k">${k}</span><span class="v">${v}${u ? `<small> ${u}</small>` : ""}</span></div>`;
   paint("hStats", sim.fresh ? st("Speed", Math.round(sim.gs), "kt") + st("N1", Math.round(sim.n1), "%") + st("Water", Math.round(sim.water), "%") + st("Spray", sim.spray >= 0 ? Math.round(sim.spray) : "—", sim.spray >= 0 ? "%" : "")
     : st("Speed", "—") + st("N1", "—") + st("Water", "—") + st("Spray", "—"));
@@ -497,13 +520,6 @@ function renderHome() {
     <span class="small muted" style="line-height:1.45">${g.off ? "Switched off." : g.playing ? `<span class="play">${g.playing} playing</span> of ${g.count}.` : (sim.fresh ? GIDLE[g.name] || "Nothing playing right now." : "Waiting for the sim.")}</span></button>`).join(""));
 }
 
-function toggleDrawer(open) {
-  if (open === undefined) open = !$("drawer").classList.contains("open");
-  $("drawer").classList.toggle("open", open); $("scrim").classList.toggle("hidden", !open);
-  $("drawer").setAttribute("aria-hidden", String(!open)); $("setBtn").setAttribute("aria-expanded", String(open));
-  if (open) setTimeout(() => $("drawer").querySelector("button,input,select").focus(), 50); else $("setBtn").focus();
-}
-document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && $("drawer").classList.contains("open")) toggleDrawer(false); });
 function publishNow() {
   const id = $("pubProf").value, ver = $("pubVer").value.trim().replace(/^v/, ""), note = $("pubNote").value.trim();
   const name = ((S.profiles || []).find((p) => p.id === id) || {}).name || id;
@@ -641,7 +657,7 @@ document.addEventListener("click", (ev) => {
     case "welcome-done": post("/api/welcome"); break;
     case "install-packages": post("/api/install-packages"); break;
     case "hide": api("/api/hide", {}); break;
-    case "drawer": toggleDrawer(); break;
+    case "forget": post("/api/assign", {Title: t.dataset.t, Profile: ""}).then(() => refresh(true)); break;
     case "savetoken": { const v = $("pubTok").value.trim(); if (v) post("/api/settings", {githubToken: v}).then(() => { $("pubTok").value = ""; }); break; }
     case "publish": publishNow(); break;
     case "quit": if (confirm("Quit WhiskeesFX? Effects keep working with the last settings; aircraft profiles won't switch until it runs again.")) api("/api/quit", {}); break;
@@ -669,6 +685,11 @@ document.addEventListener("input", (ev) => {
 });
 document.addEventListener("change", (ev) => {
   const t = ev.target, a = t.dataset && t.dataset.act;
+  if (t.id === "hSel") {
+    if ($("hRem").checked) post("/api/profile", {Manual: ""}).then(() => post("/api/assign", {Title: S.title, Profile: t.value})).then(() => refresh(true));
+    else post("/api/profile", {Manual: t.value}).then(() => refresh(true));
+    return;
+  }
   if (a === "expr") setDial(t.dataset.sec, "param:" + t.dataset.k, t.value);
   else if (a === "field") setDial(t.dataset.sec, t.dataset.k, t.value);
   else if (a === "profile") post("/api/profile", {Manual: t.value});
@@ -680,7 +701,7 @@ document.addEventListener("keydown", (ev) => { // Enter in a text field saves it
 });
 
 // ---- profiles ---------------------------------------------------------------------------------------
-let P = null, pSel = "", pSub = (location.hash.match(/psub=(\w+)/) || [])[1] || "airframes", pStep = 0.1, pFilter = "", pOnly = false, pLast = 0;
+let P = null, pSel = "", pSub = (location.hash.match(/psub=(\w+)/) || [])[1] || "features", pStep = 0.1, pFilter = "", pOnly = false, pLast = 0;
 const AX = ["x", "y", "z"];
 async function loadProfiles(force) {
   if (!force && Date.now() - pLast < 1800) return;
@@ -700,24 +721,22 @@ function drawProfiles() {
     <span class="n">Hidden${pSel === "__hidden" ? '<span class="tag soft">FILTER</span>' : ""}</span><span class="small muted">${P.hiddenCount} airframe${P.hiddenCount === 1 ? "" : "s"} matching your ignore filters</span></button>`;
   const nAf = (p) => `${(p.airframes || []).length} airframe${(p.airframes || []).length === 1 ? "" : "s"}`;
   const pitem = (p) => `<button class="pitem ${p.id === pSel ? "sel" : ""} ${p.official ? "off" : ""}" data-act="ppick" data-id="${esc(p.id)}">
-    <span class="n">${esc(p.name)}${p.id === pSel && pOnly ? '<span class="tag soft">FILTER</span>' : ""}${p.active ? '<span class="tag">IN USE</span>' : ""}${p.changed ? '<span class="tag alt">EDITED</span>' : ""}</span>
+    <span class="n">${esc(p.name.replace(/^Fenix A3\d\d · /, ""))}${p.isDefault ? ' <span title="Default for the ' + esc(p.type || "") + '" style="color:#D9B04A">★</span>' : ""}${p.active ? '<span class="tag">IN USE</span>' : ""}${p.changed ? '<span class="tag alt">EDITED</span>' : ""}</span>
     <span class="small muted">${p.official ? '<span title="Read-only: make your own copy to change it" aria-label="Read-only">🔒</span> Tuned by Whiskee' + (p.version ? " · v" + esc(p.version) : "") : p.user ? (p.basedOn ? "From " + esc(p.basedOn.replace(/ \(Whiskee official.*\)$/, "")) : "Yours") : p.generic ? "Fallback for anything unknown" : "Shipped (a best guess)"} · ${nAf(p)}</span></button>`;
-  const wkView = view === "whiskee";
-  const off = wkView ? P.profiles.filter((p) => p.official) : [], mine = wkView ? [] : P.profiles.filter((p) => p.user), rest = wkView ? [] : P.profiles.filter((p) => !p.official && !p.user);
-  if (wkView && !off.some((p) => p.id === pSel) && off.length) pSel = off[0].id;
-  if (!wkView && P.profiles.some((p) => p.id === pSel && p.official)) pSel = (mine[0] || rest[0] || {}).id;
-  const sec = (title, extra) => `<div class="psec">${title}<span class="grow"></span>${extra || ""}</div>`;
-  paint("plist",
-    (off.length ? sec('<span class="seal" aria-hidden="true">✓</span><span class="wk" style="font-size:15px">Whiskee</span><span class="label">Official</span>') + off.map(pitem).join("") : "") +
-    (wkView ? (off.length ? "" : '<div class="small muted" style="padding:6px 10px">No official profiles yet.</div>') :
-    sec('<span class="label">Yours</span>', '<button class="btn small ok" data-act="newprofile" title="Make a profile for the aircraft loaded now">+ New</button>') +
-    (mine.length ? mine.map(pitem).join("") : '<div class="small muted" style="padding:2px 10px 6px">None yet. Copy one from the Whiskee tab, or make one for the aircraft loaded now.</div>') +
-    sec('<span class="label">Shipped (best guesses)</span>') + rest.map(pitem).join("") + hiddenItem));
+  const shown = P.profiles.filter((p) => !p.generic);
+  if (!shown.some((p) => p.id === pSel) && pSel !== "__hidden") pSel = ((shown.find((p) => p.active) || shown[0]) || {}).id || "";
+  const types = [...new Set(shown.map((p) => p.type || "Other"))].sort().reverse();
+  const sec = (title) => `<div class="psec"><span class="label">${esc(title)}</span><span class="grow" style="height:1px;background:var(--line)"></span></div>`;
+  paint("plist", types.map((ty) => sec(ty) + shown.filter((p) => (p.type || "Other") === ty).sort((a, b) => (b.official - a.official) || a.name.localeCompare(b.name)).map(pitem).join("")).join("") +
+    hiddenItem + '<div class="small muted" style="padding:10px 6px">WhiskeesFX supports the Fenix A319, A320 and A321 for now. More aircraft to come.</div>');
   $("pname").textContent = sel.name || "";
   const ro = sel.official && !(S && S.devMode);
   $("phead").classList.toggle("wkcard", !!sel.official);
   const pd = document.querySelector('[data-act="pdup"]');
-  pd.textContent = sel.official ? "Make my own copy" : "Duplicate"; pd.classList.toggle("ok", !!sel.official);
+  pd.textContent = sel.official ? "Make a copy to edit" : "Duplicate"; pd.classList.toggle("ok", !!sel.official);
+  const db = $("pDefBtn"); db.classList.toggle("hidden", !sel.type || !!sel.hidden);
+  db.textContent = sel.isDefault ? "★ Default for " + (sel.type || "").replace("Fenix ", "") : "☆ Make default for " + (sel.type || "").replace("Fenix ", "");
+  db.classList.toggle("ok", !!sel.isDefault); db.title = "Use this profile for every " + (sel.type || "") + " you haven't chosen one for";
   paint("pnotes", sel.official && (sel.notes || []).length ? `<div class="card" style="padding:14px 16px;display:flex;flex-direction:column;gap:8px"><strong style="font-size:14px">Whiskee's notes</strong>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px">${sel.notes.map((n) => { const k = n.indexOf(":"); return `<div style="padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--line);display:flex;flex-direction:column;gap:3px">${k > 0 ? `<strong style="font-size:13px">${esc(n.slice(0, k))}</strong><span class="small muted" style="line-height:1.45">${esc(n.slice(k + 1).trim())}</span>` : `<span class="small" style="line-height:1.45">${esc(n)}</span>`}</div>`; }).join("")}</div></div>` : "");
   if (sel.official) $("pkind").innerHTML = `<span class="row" style="gap:6px"><span class="seal" aria-hidden="true">✓</span><span class="wk" style="font-size:13px">Whiskee official</span><span class="muted">${sel.version ? "· v" + esc(sel.version) + " " : ""}· ${ro ? "read-only: make your own copy to move anything. Updates arrive with the app." : "developer mode: you can edit it"}</span></span>`;
@@ -726,7 +745,8 @@ function drawProfiles() {
   document.querySelectorAll('[data-act="pdup"],[data-act="preset-prof"],#psub').forEach((e) => e.classList.toggle("hidden", !!sel.hidden));
   if (sel.hidden) pSub = "airframes";
   document.querySelectorAll("#psub button").forEach((b) => b.classList.toggle("on", b.dataset.v === pSub));
-  if (pSub === "airframes") drawAirframes(); else if (pSub === "features") drawFeatures(sel); else if (pSub === "positions") drawPositions(sel); else drawTestView(sel);
+  if (pSub === "test") pSub = "positions";
+  if (pSub === "airframes") drawAirframes(); else if (pSub === "positions") drawPositions(sel); else drawFeatures(sel);
   drawTestPanel(sel);
 }
 function drawAirframes() {
@@ -777,12 +797,12 @@ function drawPositions(sel) {
   html += `</div><div class="small muted">Side: distance from the centre line. For a pair (both engines, both wingtips) one value sets both. Values for the engine top and bottom are the engine radius; for the wingtip bottom, the winglet height.</div>`;
   const a = document.activeElement;
   if (a && $("pbody").contains(a) && a.tagName === "INPUT" && a.type === "number") return;
-  paint("pbody", html);
+  paint("pbody", ((P.tests || {}).testMode ? testViewHTML(sel) : `<div class="banner" style="margin:0">Switch on <strong>Show in sim</strong> to see these as dots on the aircraft and nudge them into place.</div>`) + html);
 }
 // schematic drawings: positions of each point on a front and a side view (not to scale)
 const FRONT = {engine_centre:[400,190], engine_top:[400,156], engine_bottom:[400,224], pylon_top:[400,138], wingtip_top:[540,62,1], wingtip_bottom:[528,112,1], flap_end:[468,128,1], le_inner:[432,126,1], le_outer:[515,88,1], strake_in:[378,166], strake_out:[422,166,1], main_gear:[330,262], ground:[200,268,1], nose_gear:[280,262,1]};
 const SIDE = {intake_lip:[205,150,1], engine_centre:[252,150], nozzle:[300,150], engine_top:[252,132], engine_bottom:[252,168], nose_gear:[110,200,1], main_gear:[330,200], flap_end:[392,106], le_inner:[292,112], le_outer:[352,104], strake_in:[226,136], strake_out:[232,141,1], apu:[540,62,1], pylon_top:[268,112]};
-function drawTestView(sel) {
+function testViewHTML(sel) {
   const t = P.tests || {};
   const dots = (map, quiet) => (P.points || []).filter((p) => map[p.id]).map((p) => {
     const [x, y, l] = map[p.id];
@@ -799,7 +819,7 @@ function drawTestView(sel) {
   let html = "";
   if (sel.id && !sel.active) html += `<div class="banner" style="margin:0">Test mode shows the profile in use (${esc(profName((P.profiles.find((p) => p.active) || {}).id))}). Load an aircraft that uses “${esc(sel.name)}” to check its dots.</div>`;
   html += `<div class="card"><div class="label">Head-on · tap a dot to pick it</div>${front}</div><div class="card"><div class="label">Side · hover a dot for its name</div>${side}</div>`;
-  paint("pbody", html);
+  return html;
 }
 function drawTestPanel(sel) {
   const t = P.tests || {};
@@ -837,7 +857,7 @@ const activeProfileID = () => ((P.profiles || []).find((p) => p.active) || {}).i
 async function setTest(changes) { await api("/api/tests", Object.assign({}, S.tests, changes)); await refresh(true); await loadProfiles(true); drawProfiles(); }
 document.addEventListener("keydown", (ev) => {
   window.__shift = ev.shiftKey;
-  if ((view !== "profiles" && view !== "whiskee") || !P || !(P.tests || {}).testMode) return;
+  if (view !== "profiles" || !P || !(P.tests || {}).testMode) return;
   const tg = ev.target.tagName;
   if (tg === "INPUT" || tg === "SELECT" || tg === "TEXTAREA") return;
   const k = {ArrowUp: [1, 1], ArrowDown: [1, -1], ArrowLeft: [0, -1], ArrowRight: [0, 1], PageUp: [2, 1], PageDown: [2, -1]}[ev.key];
@@ -846,18 +866,19 @@ document.addEventListener("keydown", (ev) => {
 document.addEventListener("keyup", (ev) => { window.__shift = ev.shiftKey; });
 document.addEventListener("click", async (ev) => {
   const t = ev.target.closest("[data-act]");
-  if (!t || (view !== "profiles" && view !== "whiskee")) return;
+  if (!t || view !== "profiles") return;
   const a = t.dataset.act;
   if (a === "ppick") { // first click: this profile and only its airframes; same profile again: all airframes
     const id = t.dataset.id;
     if (id === "__hidden" && pSel === "__hidden") { pSel = (P.profiles.find((p) => p.active) || P.profiles[0] || {}).id || ""; pOnly = false; }
-    else if (id === pSel && pOnly && pSub === "airframes") pOnly = false; else { pSel = id; pOnly = true; pSub = "airframes"; }
+    else if (id === pSel && pOnly && pSub === "airframes") pOnly = false; else { pSel = id; pOnly = true; }
     await loadProfiles(true); drawProfiles();
   }
   else if (a === "pfeature") { const r = await api("/api/feature", {Profile: pSel, ID: t.dataset.id, On: t.dataset.on === "1"}); if (r && r.ok === false && r.error) alert(r.error); await loadProfiles(true); drawProfiles(); }
   else if (a === "psub") { pSub = t.dataset.v; if (pSub === "test" && !(P.tests || {}).testMode) await setTest({testMode: true, selected: (P.points[0] || {}).id}); else drawProfiles(); }
-  else if (a === "testmode") { const on = !(P.tests || {}).testMode; await setTest({testMode: on, selected: on ? ((P.tests || {}).selected || (P.points[0] || {}).id) : (P.tests || {}).selected}); if (on) { pSub = "test"; drawProfiles(); } }
-  else if (a === "ppoint" || a === "ptest") { pSub = "test"; await setTest({testMode: true, selected: t.dataset.id}); }
+  else if (a === "testmode") { const on = !(P.tests || {}).testMode; await setTest({testMode: on, selected: on ? ((P.tests || {}).selected || (P.points[0] || {}).id) : (P.tests || {}).selected}); if (on) { pSub = "positions"; drawProfiles(); } }
+  else if (a === "pdefault") { const sel = (P.profiles || []).find((p) => p.id === pSel) || {}; await post("/api/typedefault", {Type: sel.type, Profile: sel.isDefault ? "" : sel.id}); await refresh(true); await loadProfiles(true); drawProfiles(); }
+  else if (a === "ppoint" || a === "ptest") { pSub = "positions"; await setTest({testMode: true, selected: t.dataset.id}); }
   else if (a === "pnext" || a === "pprev") { const pts = P.points, i = pts.findIndex((p) => p.id === P.tests.selected); const j = i + (a === "pnext" ? 1 : -1); if (j >= pts.length) await setTest({testMode: false}); else if (j >= 0) await setTest({selected: pts[j].id}); }
   else if (a === "nudge") nudge(+t.dataset.axis, +t.dataset.dir);
   else if (a === "pstep") { pStep = +t.dataset.v; drawProfiles(); }
@@ -877,7 +898,7 @@ document.addEventListener("click", async (ev) => {
 });
 document.addEventListener("change", async (ev) => {
   const t = ev.target, a = t.dataset && t.dataset.act;
-  if (view !== "profiles" && view !== "whiskee") return;
+  if (view !== "profiles") return;
   if (a === "assign") { await api("/api/assign", {Title: t.dataset.title, Profile: t.value}); await loadProfiles(true); drawProfiles(); refresh(false); }
   else if (a === "pset") { await api("/api/point", {Profile: pSel, ID: t.dataset.id, Axis: +t.dataset.axis, Delta: 0, Set: parseFloat(t.value)}); await loadProfiles(true); t.blur(); drawProfiles(); }
   else if (a === "ponly") { pOnly = t.checked; drawProfiles(); }

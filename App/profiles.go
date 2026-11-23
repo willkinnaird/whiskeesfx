@@ -28,6 +28,7 @@ type Profile struct {
 	File    string   `json:"file"`
 	// Official: one of Whiskee's own tuned profiles. Shipped with the app, read-only for users (they make a copy).
 	Official bool     `json:"official"`
+	Type     string   `json:"type"` // aircraft type, e.g. "Fenix A321" (the default-per-type key)
 	Version  string   `json:"version"`
 	Notes    []string `json:"notes"`
 	ini      *Ini
@@ -51,6 +52,8 @@ func loadProfile(path string, user bool) (*Profile, error) {
 			}
 		case "generic":
 			p.Generic = kv.Value == "1"
+		case "type":
+			p.Type = kv.Value
 		case "official":
 			p.Official = kv.Value == "1" && !user // only shipped profiles can be official
 		case "version":
@@ -72,6 +75,14 @@ func loadProfile(path string, user bool) (*Profile, error) {
 			}
 			if k := strings.Index(s, "=>"); k > 0 {
 				p.replace = append(p.replace, [2]string{strings.TrimSpace(s[:k]), strings.TrimSpace(s[k+2:])})
+			}
+		}
+	}
+	if p.Type == "" && !p.Generic { // copies made before profiles had a type: infer it from the name
+		for _, t := range []string{"A319", "A320", "A321"} {
+			if strings.Contains(p.Name, t) || strings.Contains(p.basedOn(), t) {
+				p.Type = "Fenix " + t
+				break
 			}
 		}
 	}

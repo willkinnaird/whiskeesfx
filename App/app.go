@@ -49,6 +49,7 @@ type Config struct {
 	KeepInTray    bool                     `json:"keepInTray"`
 	AutoUpdate    bool                     `json:"autoUpdate"`
 	DevMode       bool                     `json:"devMode"`
+	TypeDefault   map[string]string        `json:"typeDefault,omitempty"` // aircraft type -> profile used when nothing is assigned
 	GitHubToken   string                   `json:"githubToken,omitempty"` // developer only: lets Publish write official profiles to the repo
 }
 
@@ -351,8 +352,19 @@ func (a *App) pickActive() *Profile {
 			return p
 		}
 	}
-	return pickProfile(a.profiles, a.title)
+	auto := pickProfile(a.profiles, a.title)
+	if auto != nil && auto.Type != "" {
+		if id := a.cfg.TypeDefault[auto.Type]; id != "" {
+			if p := a.profileByID(id); p != nil {
+				return p
+			}
+		}
+	}
+	return auto
 }
+
+// supported: only the Fenix A319/A320/A321 for now; anything else gets no effects.
+func (a *App) supported() bool { return a.active != nil && !a.active.Generic }
 
 // ---- compose ----------------------------------------------------------------------------------------
 
@@ -556,7 +568,7 @@ func (a *App) applyTests(f *Ini) {
 		f.Set("", "wet_threshold", "2")
 		f.Set("", "rain_counts_as_wet", "0")
 	}
-	if t.AllOff {
+	if t.AllOff || (a.title != "" && !a.supported()) {
 		f.Set("", "enabled", "0")
 	}
 	if t.TestMode { // every effect paused so the position dots are easy to see

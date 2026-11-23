@@ -82,7 +82,7 @@ func (a *App) state(full bool) map[string]any {
 	}
 	active := map[string]any{}
 	if a.active != nil {
-		active = map[string]any{"id": a.active.ID, "name": a.active.Name, "generic": a.active.Generic, "user": a.active.User, "official": a.active.Official, "version": a.active.Version}
+		active = map[string]any{"id": a.active.ID, "name": a.active.Name, "generic": a.active.Generic, "user": a.active.User, "official": a.active.Official, "version": a.active.Version, "type": a.active.Type}
 	}
 	all := a.cfg.Groups["*"]
 	master := map[string]any{"off": all != nil && all.Off, "strength": 1.0}
@@ -95,7 +95,7 @@ func (a *App) state(full bool) map[string]any {
 		"version": version, "view": viewOr(a.cfg.View), "rev": len(a.cfg.Tweaks), "sim": sim, "states": states,
 		"title": a.title, "profile": active, "profiles": profs, "manualProfile": a.cfg.ManualProfile,
 		"groups": a.groupViews(evs), "master": master, "tests": a.tests, "paused": a.paused, "message": a.message,
-		"progress": getProgress(), "dismissed": a.cfg.Dismissed, "update": getUpdate(), "devMode": a.cfg.DevMode, "hasToken": a.cfg.GitHubToken != "", "tweaks": len(a.cfg.Tweaks),
+		"progress": getProgress(), "dismissed": a.cfg.Dismissed, "update": getUpdate(), "devMode": a.cfg.DevMode, "hasToken": a.cfg.GitHubToken != "", "supported": a.title == "" || a.supported(), "assign": a.cfg.Assign, "tweaks": len(a.cfg.Tweaks),
 		"settings": map[string]any{
 			"theme": themeOr(a.cfg.Theme), "onTop": a.cfg.OnTop, "keepInTray": a.cfg.KeepInTray, "autoUpdate": a.cfg.AutoUpdate, "startWithWindows": a.startsWin,
 			"sourceIni": a.sourcePath(), "workDir": a.cfg.WorkDir, "community": a.cfg.Community, "repo": a.cfg.Repo,
@@ -282,7 +282,7 @@ func routes() *http.ServeMux {
 		}
 		app.mu.Lock()
 		defer app.mu.Unlock()
-		if v, ok := b["view"].(string); ok && (v == "home" || v == "basic" || v == "advanced" || v == "profiles" || v == "whiskee") {
+		if v, ok := b["view"].(string); ok && (v == "home" || v == "basic" || v == "advanced" || v == "profiles" || v == "settings") {
 			app.cfg.View = v
 		}
 		if v, ok := b["githubToken"].(string); ok && app.cfg.DevMode {
@@ -562,6 +562,27 @@ func routes() *http.ServeMux {
 		app.saveConfig()
 		return err
 	})
+	post("/api/typedefault", func(r *http.Request) error {
+		var b struct{ Type, Profile string }
+		readBody(r, &b)
+		app.mu.Lock()
+		defer app.mu.Unlock()
+		if b.Type == "" {
+			return errf("bad request")
+		}
+		if app.cfg.TypeDefault == nil {
+			app.cfg.TypeDefault = map[string]string{}
+		}
+		if b.Profile == "" {
+			delete(app.cfg.TypeDefault, b.Type)
+		} else {
+			app.cfg.TypeDefault[b.Type] = b.Profile
+		}
+		app.saveConfig()
+		app.active = app.pickActive()
+		app.composeLocked()
+		return nil
+	})
 	post("/api/feature", func(r *http.Request) error {
 		var b struct {
 			Profile, ID string
@@ -667,6 +688,8 @@ type ProfileListItem struct {
 	Version   string   `json:"version"`
 	Notes     []string `json:"notes"`
 	BasedOn   string   `json:"basedOn"`
+	Type      string   `json:"type"`
+	IsDefault bool     `json:"isDefault"`
 	Airframes []string `json:"airframes"`
 }
 
@@ -717,7 +740,8 @@ func (a *App) profilesView(id string) map[string]any {
 	var profs []ProfileListItem
 	for _, p := range a.profiles {
 		it := ProfileListItem{ID: p.ID, Name: p.Name, User: p.User, Generic: p.Generic, Active: a.active == p, Changed: changed[p.ID],
-			Official: p.Official, Version: p.Version, Notes: p.Notes, BasedOn: p.basedOn()}
+			Official: p.Official, Version: p.Version, Notes: p.Notes, BasedOn: p.basedOn(), Type: p.Type,
+			IsDefault: p.Type != "" && a.cfg.TypeDefault[p.Type] == p.ID}
 		for _, av := range list {
 			if av.Profile == p.ID && !av.Hidden {
 				it.Airframes = append(it.Airframes, av.Title)

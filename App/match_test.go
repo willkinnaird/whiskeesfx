@@ -23,16 +23,17 @@ func TestPickProfile(t *testing.T) {
 	}
 }
 
+// Only the Fenix A319/A320/A321 are supported for now: everything else falls back to generic (and gets no effects).
 func TestPickOthers(t *testing.T) {
 	ps := loadProfiles("profiles")
 	for title, want := range map[string]string{
-		"PMDG 737-800 Ryanair":        "pmdg-737-800",
-		"PMDG 777-300ER Emirates":     "pmdg-777-300er",
-		"PMDG 777F Lufthansa":         "pmdg-777f",
-		"iFly 737 MAX 8 Ryanair":      "ifly-737-max8",
-		"iniBuilds A350-900 Finnair":  "inibuilds-a350-900",
-		"iniBuilds A350-1000 Qatar":   "inibuilds-a350-1000",
-		"FlyByWire A380-842 Emirates": "flybywire-a380",
+		"PMDG 737-800 Ryanair":        "generic",
+		"PMDG 777-300ER Emirates":     "generic",
+		"PMDG 777F Lufthansa":         "generic",
+		"iFly 737 MAX 8 Ryanair":      "generic",
+		"iniBuilds A350-900 Finnair":  "generic",
+		"iniBuilds A350-1000 Qatar":   "generic",
+		"FlyByWire A380-842 Emirates": "generic",
 		"FenixA321 CFM SL SC":         "fenix-a321-cfm-sharklets",
 	} {
 		if got := pickProfile(ps, title); got == nil || got.ID != want {
