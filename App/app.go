@@ -177,9 +177,10 @@ func findCommunity() string {
 
 func (a *App) load() {
 	os.MkdirAll(appDir(), 0755)
-	a.cfg = Config{Groups: map[string]*GroupSetting{}, KeepInTray: true, AutoUpdate: true, View: "basic", Repo: defaultRepo}
+	a.cfg = Config{Groups: map[string]*GroupSetting{}, KeepInTray: true, AutoUpdate: true, Repo: defaultRepo}
 	if b, err := os.ReadFile(configPath()); err == nil {
 		json.Unmarshal(b, &a.cfg)
+		a.cfg.View = "" // always open on the WhiskeesFX launcher
 	}
 	if a.cfg.Groups == nil {
 		a.cfg.Groups = map[string]*GroupSetting{}

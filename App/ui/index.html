@@ -129,6 +129,23 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
 .bx{border:0;background:transparent;color:inherit;font-size:16px;width:32px;height:32px;border-radius:8px;opacity:.7}
 .bx:hover{opacity:1;background:rgba(128,128,128,.15)}
 [role=tab].on .wk{background:none;-webkit-text-fill-color:currentColor;color:inherit;animation:none}
+.wfx-suite{flex-grow:1;padding:8px 26px 26px;display:flex;gap:18px;flex-wrap:wrap}
+.wfx-hero{position:relative;overflow:hidden;flex:2 1 600px;border-radius:26px;padding:30px 32px;background:radial-gradient(130% 120% at 0% 0%,#2E5A45 0%,#1B3A2C 45%,#14241C 100%);border:1px solid rgba(140,196,166,.35);display:flex;flex-direction:column;gap:22px;min-height:600px;color:#EFEADF}
+.wfx-hero h1{margin:0;font-size:96px;font-weight:800;letter-spacing:-4px;line-height:.9}
+.wfx-big{display:flex;flex-direction:column;gap:2px}.wfx-big .k{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:rgba(239,234,223,.6)}
+.wfx-big .v{font-size:40px;font-weight:800;letter-spacing:-1.2px;line-height:1}.wfx-big .v small{font-size:16px;color:rgba(239,234,223,.6)}
+.wfx-grp{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:rgba(0,0,0,.22);border:1px solid rgba(140,196,166,.12);text-align:left;font:inherit;color:inherit;cursor:pointer}
+.wfx-grp.on{border-color:rgba(140,196,166,.45)}
+.wfx-hb{font:inherit;font-size:15px;font-weight:700;padding:14px 20px;border-radius:12px;border:1px solid rgba(140,196,166,.4);background:transparent;color:#EFEADF;cursor:pointer}
+.wfx-hb.pri{font-size:16px;font-weight:800;padding:14px 26px;border:0;background:#8CC4A6;color:#12201A}
+.wfx-soon{position:relative;overflow:hidden;flex:1 1 0;border-radius:26px;padding:28px;display:flex;flex-direction:column;justify-content:space-between;min-height:270px;color:#EFEADF;font:inherit;text-align:left;cursor:pointer}
+.wfx-soon .soontag{align-self:flex-start;font-size:12px;font-weight:800;letter-spacing:1.4px;padding:6px 12px;border-radius:999px;border:1.5px solid currentColor}
+.wfx-soon h2{margin:0;font-size:56px;font-weight:800;letter-spacing:-2.2px;line-height:.95;position:relative}
+.wfx-soon .ic{position:absolute;right:-10px;bottom:-30px;font-size:190px;opacity:.13}
+.wfx-cam{background:radial-gradient(120% 140% at 100% 0%,#1E3448 0%,#16222C 55%,#141A17 100%);border:1px solid #7FB3E055}
+.wfx-lgt{background:radial-gradient(120% 140% at 100% 0%,#4A3A1C 0%,#2A2316 55%,#141A17 100%);border:1px solid #E0B45A55}
+#soonv{flex-grow:1;display:grid;place-items:center;padding:30px}
+@media (max-width:900px){.wfx-hero h1{font-size:64px}.wfx-big .v{font-size:28px}}
 #setv{padding:22px 26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;align-items:start;max-width:1040px}
 #setv .wkpub{grid-column:1/-1}
 #home{padding:22px 26px;display:flex;flex-direction:column;gap:16px;max-width:920px}
@@ -150,29 +167,45 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
 </head>
 <body>
 <header>
-  <div class="logo"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" aria-hidden="true" viewBox="0 0 256 256"><rect x="8" y="8" width="240" height="240" rx="56" fill="#2F5D4A"/>
+  <div class="logo" data-act="view" data-v="suite" role="button" tabindex="0" title="WhiskeesFX home" style="cursor:pointer"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" aria-hidden="true" viewBox="0 0 256 256"><rect x="8" y="8" width="240" height="240" rx="56" fill="#2F5D4A"/>
 <path d="M128 30 C128 30 196 110 196 156 C196 194 165 224 128 224 C91 224 60 194 60 156 C60 110 128 30 128 30 Z" fill="#F4F1EA"/>
-<path d="M128 92 C133 92 135 100 135 108 L135 140 L170 160 L170 170 L135 160 L134 186 L146 196 L146 203 L128 198 L110 203 L110 196 L122 186 L121 160 L86 170 L86 160 L121 140 L121 108 C121 100 123 92 128 92 Z" fill="#2F5D4A"/></svg>WhiskeesFX</div>
+<path d="M128 92 C133 92 135 100 135 108 L135 140 L170 160 L170 170 L135 160 L134 186 L146 196 L146 203 L128 198 L110 203 L110 196 L122 186 L121 160 L86 170 L86 160 L121 140 L121 108 C121 100 123 92 128 92 Z" fill="#2F5D4A"/></svg>WhiskeesFX<span id="prodName" class="hidden" style="color:var(--acc);margin-left:6px">· AeroFX</span></div>
   <span class="pill" id="prof"><span class="dot"></span><span class="muted">Aircraft</span><strong>…</strong></span>
   <span id="chips" style="display:flex;flex-wrap:wrap;gap:6px"></span>
   <span class="grow"></span>
-  <div class="tabs" role="tablist" aria-label="View">
+  <div class="tabs" role="tablist" aria-label="AeroFX" id="aeroTabs">
     <button role="tab" data-act="view" data-v="home" id="tabHome">Home</button>
     <button role="tab" data-act="view" data-v="basic" id="tabBasic">Basic</button>
     <button role="tab" data-act="view" data-v="advanced" id="tabAdv">Advanced</button>
     <button role="tab" data-act="view" data-v="profiles" id="tabProf">Profiles</button>
-    <button role="tab" data-act="view" data-v="settings" id="tabSet">Settings</button>
   </div>
+  <button class="btn" data-act="view" data-v="settings" id="tabSet">⚙ Settings</button>
   <button class="btn acc hidden" id="updBtn" data-act="update">Update</button>
   <button class="btn" data-act="hide" id="hideBtn">Hide to tray</button>
 </header>
 <div id="uiErr" class="banner hidden" role="alert"></div>
 <div id="banners"></div>
 
+<!-- SUITE LAUNCHER -->
+<section id="suite" class="wfx-suite hidden" aria-label="WhiskeesFX">
+  <div class="wfx-hero"><span id="sPlane" style="position:absolute;right:-90px;bottom:-190px;width:560px;opacity:.11;transform:rotate(-35deg);pointer-events:none"></span>
+    <div class="row" style="position:relative;gap:10px"><span id="sDot" style="width:10px;height:10px;border-radius:50%;background:#8CC4A6;box-shadow:0 0 0 6px rgba(140,196,166,.18)"></span><span id="sState" style="font-size:12px;font-weight:800;letter-spacing:1.4px;color:#8CC4A6"></span></div>
+    <div style="position:relative"><h1>AeroFX</h1><p id="sProf" style="margin:12px 0 0;font-size:20px;color:rgba(239,234,223,.75)"></p></div>
+    <div id="sStats" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;position:relative"></div>
+    <div id="sGroups" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;position:relative"></div>
+    <div class="row" style="gap:10px;margin-top:auto;position:relative;flex-wrap:wrap"><button class="wfx-hb pri" data-act="view" data-v="home">Open AeroFX →</button><button class="wfx-hb" data-act="view" data-v="profiles">Profiles</button><button class="wfx-hb" data-act="master-off" id="sPause">Pause effects</button></div>
+  </div>
+  <div style="flex:1 1 300px;display:flex;flex-direction:column;gap:18px">
+    <button class="wfx-soon wfx-cam" data-act="view" data-v="camera"><span class="soontag" style="color:#7FB3E0">COMING SOON</span><span class="ic" aria-hidden="true">🎥</span><h2>Camera<span style="color:#7FB3E0">FX</span></h2></button>
+    <button class="wfx-soon wfx-lgt" data-act="view" data-v="lighting"><span class="soontag" style="color:#E0B45A">COMING SOON</span><span class="ic" aria-hidden="true">💡</span><h2>Lighting<span style="color:#E0B45A">FX</span></h2></button>
+  </div>
+</section>
+<section id="soonv" class="hidden" aria-label="Coming soon"></section>
+
 <!-- HOME -->
 <section id="home" class="hidden" aria-label="Home">
   <div class="hero">
-    <svg viewBox="0 0 220 120" width="200" height="110" aria-hidden="true" style="flex:none"><path d="M110 8 L116 40 L206 72 L206 80 L116 64 L114 98 L132 110 L132 114 L110 108 L88 114 L88 110 L106 98 L104 64 L14 80 L14 72 L104 40 Z" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linejoin="round"/><circle cx="70" cy="62" r="5" fill="var(--acc2)"/><circle cx="150" cy="62" r="5" fill="var(--acc2)"/></svg>
+    <span id="hPlane" style="flex:none;width:120px;display:block"></span>
     <div style="flex:1 1 280px;display:flex;flex-direction:column;gap:8px;min-width:0">
       <div id="hChips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
       <h1 id="hName">No aircraft yet</h1>
@@ -372,7 +405,13 @@ document.documentElement.dataset.theme = darkQuery.matches ? "dark" : "light"; /
 function render() {
   const s = S;
   applyTheme();
-  view = s.view || "home";
+  view = s.view || "suite";
+  const aero = ["home", "basic", "advanced", "profiles"].includes(view);
+  $("suite").classList.toggle("hidden", view !== "suite");
+  $("soonv").classList.toggle("hidden", view !== "camera" && view !== "lighting");
+  $("aeroTabs").classList.toggle("hidden", !aero);
+  $("prodName").classList.toggle("hidden", !aero);
+  $("prof").classList.toggle("hidden", !aero || view === "home"); $("chips").classList.toggle("hidden", true);
   $("home").classList.toggle("hidden", view !== "home");
   $("tabHome").classList.toggle("on", view === "home");
   if (view === "whiskee") view = "profiles";
@@ -417,7 +456,8 @@ function render() {
   });
   renderWelcome();
   renderSettings();
-  if (view === "home") renderHome(); else if (view === "basic") renderBasic(); else if (view === "advanced") renderAdv(); else if (view === "profiles") renderProfiles();
+  if (view === "suite") renderSuite(); else if (view === "camera" || view === "lighting") renderSoon();
+  else if (view === "home") renderHome(); else if (view === "basic") renderBasic(); else if (view === "advanced") renderAdv(); else if (view === "profiles") renderProfiles();
 }
 
 function renderWelcome() {
@@ -486,7 +526,57 @@ function renderSettings() {
 const GICON = {"RAIN / WET RUNWAY": "☔", "ENGINES": "🔥", "LANDING": "🛬", "AIRFLOW: VORTICES AND VAPOUR (humid air)": "🌀", "SNOW": "❄️", "WINTER": "🧊"};
 const GIDLE = {"RAIN / WET RUNWAY": "Waiting for a wet runway or rain.", "ENGINES": "Waiting for the engines to run.", "LANDING": "Plays at touchdown.",
   "AIRFLOW: VORTICES AND VAPOUR (humid air)": "Needs humid air; ropes need flaps out under 2,500 ft.", "SNOW": "Needs snow on the ground.", "WINTER": "Needs freezing weather."};
+// Top-down silhouettes of the A320 family to scale (metres): same wing and tail, different fuselage lengths.
+function planSVG(type, fill, extra) {
+  const L = {A319: 33.84, A320: 37.57, A321: 44.51}[type] || 37.57;
+  const wingLE = {A319: 12.9, A320: 14.6, A321: 18.3}[type] || 14.6; // wing root leading edge, from the nose
+  const R = 1.98, W = 18.2, pad = 1;
+  const X = (x) => (W + x).toFixed(2), Y = (y) => (y + pad).toFixed(2);
+  const half = (s) => [[0, 0], [s * 0.9, 0.6], [s * 1.55, 1.7], [s * 1.9, 3.2], [s * R, 5.2]];
+  const f = [];
+  // fuselage right side, nose to tail, then left side back up
+  const right = [...half(1), [R, L - 9], [1.6, L - 5], [0.9, L - 2], [0.35, L - 0.2], [0, L]];
+  const fus = right.map(([x, y]) => X(x) + " " + Y(y)).join(" L ") + " L " + right.slice().reverse().slice(1).map(([x, y]) => X(-x) + " " + Y(y)).join(" L ");
+  f.push("M " + fus + " Z");
+  const wing = (s) => {
+    const rootTE = wingLE + 7.0, kinkX = 6.3 * s, kinkLE = wingLE + 2.9, kinkTE = wingLE + 6.6;
+    const tipX = 16.9 * s, tipLE = wingLE + 8.5, tipTE = wingLE + 10.0;
+    return `M ${X(R * s)} ${Y(wingLE)} L ${X(kinkX)} ${Y(kinkLE)} L ${X(tipX)} ${Y(tipLE)} L ${X(17.6 * s)} ${Y(tipLE + 0.3)} L ${X(17.6 * s)} ${Y(tipTE)} L ${X(tipX)} ${Y(tipTE)} L ${X(kinkX)} ${Y(kinkTE)} L ${X(R * s)} ${Y(rootTE)} Z`;
+  };
+  f.push(wing(1), wing(-1));
+  const nac = (s) => { const x = 5.75 * s, le = wingLE + 2.9 * (5.75 - R) / (6.3 - R), y0 = le - 3.0, y1 = le + 1.4, w = 1.1;
+    return `M ${X(x - w)} ${Y(y0 + 0.3)} Q ${X(x)} ${Y(y0 - 0.4)} ${X(x + w)} ${Y(y0 + 0.3)} L ${X(x + w * 0.8)} ${Y(y1)} L ${X(x - w * 0.8)} ${Y(y1)} Z`; };
+  f.push(nac(1), nac(-1));
+  const stab = (s) => { const r0 = L - 8.2, tip = 6.3 * s;
+    return `M ${X(0.9 * s)} ${Y(r0)} L ${X(tip)} ${Y(r0 + 3.6)} L ${X(tip)} ${Y(r0 + 5.0)} L ${X(0.7 * s)} ${Y(r0 + 6.2)} Z`; };
+  f.push(stab(1), stab(-1));
+  const vb = `0 0 ${2 * W} ${L + 2 * pad}`;
+  return `<svg viewBox="${vb}" aria-hidden="true" ${extra || ""}><g fill="${fill}">${f.map((d) => `<path d="${d}"/>`).join("")}</g></svg>`;
+}
+
+const planType = (p) => ((p && p.type) || "").replace("Fenix ", "") || "A320";
+function renderSuite() {
+  if (!$("sPlane").innerHTML) $("sPlane").innerHTML = planSVG("A320", "#8CC4A6", 'style="width:100%;height:auto;display:block"');
+  const s = S, sim = s.sim, p = s.profile || {};
+  $("sState").textContent = s.master.off ? "PAUSED" : !sim.fresh ? "WAITING FOR THE SIM" : !s.supported ? "AIRCRAFT NOT SUPPORTED YET" : "ON · SIM CONNECTED";
+  $("sDot").style.background = s.master.off || !sim.fresh || !s.supported ? "#E07B52" : "#8CC4A6";
+  paint("sProf", !s.title ? "Load a Fenix A319, A320 or A321 and the right profile is picked automatically." : !s.supported ? esc(s.title) + " isn't supported yet." :
+    esc(p.name) + (p.official ? ` <span style="display:inline-flex;align-items:center;gap:6px;margin-left:8px;vertical-align:middle"><span class="seal" aria-hidden="true">✓</span><span class="wk" style="font-size:15px">Whiskee v${esc(p.version || "")}</span></span>` : p.user ? ' <span style="font-size:15px;opacity:.7">· your profile</span>' : ""));
+  const big = (k, v, u) => `<div class="wfx-big"><span class="k">${k}</span><span class="v">${v}${u ? `<small> ${u}</small>` : ""}</span></div>`;
+  paint("sStats", sim.fresh ? big("Speed", Math.round(sim.gs), "kt") + big("N1", Math.round(sim.n1), "%") + big("Runway water", Math.round(sim.water), "%") + big("Spray", sim.spray >= 0 ? Math.round(sim.spray) : "—", sim.spray >= 0 ? "%" : "")
+    : big("Speed", "—") + big("N1", "—") + big("Runway water", "—") + big("Spray", "—"));
+  paint("sGroups", (s.groups || []).slice(0, 6).map((g) => `<button class="wfx-grp ${g.playing && !g.off ? "on" : ""}" data-act="view" data-v="basic"><span style="font-size:20px" aria-hidden="true">${GICON[g.name] || "✨"}</span><span style="display:flex;flex-direction:column"><strong style="font-size:14px">${esc(nice(g.name))}</strong><span style="font-size:12px;opacity:.65">${g.off ? "Switched off" : g.playing ? g.playing + " playing" : (sim.fresh ? GIDLE[g.name] || "Nothing playing" : "Waiting for the sim")}</span></span></button>`).join(""));
+  $("sPause").textContent = s.master.off ? "Resume effects" : "Pause effects";
+}
+function renderSoon() {
+  const cam = view === "camera", col = cam ? "#7FB3E0" : "#E0B45A";
+  paint("soonv", `<div class="wfx-soon ${cam ? "wfx-cam" : "wfx-lgt"}" style="width:min(720px,100%);min-height:420px;cursor:default">
+    <span class="soontag" style="color:${col}">COMING SOON</span><span class="ic" aria-hidden="true" style="font-size:300px">${cam ? "🎥" : "💡"}</span>
+    <h2 style="font-size:96px;letter-spacing:-4px">${cam ? "Camera" : "Lighting"}<span style="color:${col}">FX</span></h2>
+    <div class="row" style="position:relative"><button class="wfx-hb" data-act="view" data-v="suite">← Back to WhiskeesFX</button></div></div>`);
+}
 function renderHome() {
+  { const t = planType(S.profile); if ($("hPlane").dataset.t !== t) { $("hPlane").dataset.t = t; $("hPlane").innerHTML = planSVG(t, "var(--acc)", `style="width:100%;height:auto;display:block" role="img" aria-label="${t}"`); } }
   const s = S, sim = s.sim, p = s.profile || {};
   const chip = (t, k) => `<span class="chip ${k || ""}">${t}</span>`;
   const c = [];

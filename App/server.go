@@ -282,7 +282,7 @@ func routes() *http.ServeMux {
 		}
 		app.mu.Lock()
 		defer app.mu.Unlock()
-		if v, ok := b["view"].(string); ok && (v == "home" || v == "basic" || v == "advanced" || v == "profiles" || v == "settings") {
+		if v, ok := b["view"].(string); ok && (v == "suite" || v == "camera" || v == "lighting" || v == "home" || v == "basic" || v == "advanced" || v == "profiles" || v == "settings") {
 			app.cfg.View = v
 		}
 		if v, ok := b["githubToken"].(string); ok && app.cfg.DevMode {
@@ -660,7 +660,7 @@ func errf(s string) error      { return strErr(s) }
 
 func viewOr(v string) string {
 	if v == "" {
-		return "home"
+		return "suite"
 	}
 	return v
 }
