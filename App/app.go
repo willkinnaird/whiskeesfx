@@ -404,9 +404,29 @@ func (a *App) build() *Ini {
 	if f == nil {
 		return nil
 	}
+	applyOffsetAdjust(f)
 	a.applyGroups(f)
 	a.applyTests(f)
 	return f
+}
+
+// applyOffsetAdjust: an effect's "offset_adjust = dx dy dz" (set in the defaults file) is added to its offset when the
+// live settings are written, so the effect can sit a set distance from its marker (e.g. wing vapour 0.5 m under the
+// leading-edge points) while the markers stay where they were placed. The key itself is not passed to the module.
+func applyOffsetAdjust(f *Ini) {
+	for _, sec := range effectSections(f) {
+		adj, ok := f.Get(sec, "offset_adjust")
+		if !ok {
+			continue
+		}
+		f.Delete(sec, "offset_adjust")
+		off, _ := f.Get(sec, "offset")
+		o, d := parseVec(off), parseVec(adj)
+		for i := range o {
+			o[i] = round3(o[i] + d[i])
+		}
+		f.Set(sec, "offset", fmtVec(o))
+	}
 }
 
 func (a *App) profileByID(id string) *Profile {
