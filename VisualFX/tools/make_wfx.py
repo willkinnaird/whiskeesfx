@@ -44,6 +44,8 @@ SPLASH = "{E344CBC7-6293-478C-983C-F5DA49C6D62C}"   # VFX_Water_Splash
 # Our own material (MaterialLibs/whiskeesfx-materials/WFX_Ring.material): a soft ring with a clear middle, so each
 # camera-facing particle is a ring and a dense line of them reads as stacked circles / a hollow tube.
 RINGMAT = "{9D3B6E52-4A71-4C08-8F2D-1E6B5A7C3D94}"
+# 23 Nov: WFX_Tube material - bright soft edges, 30% middle across the strip; drawn as a ribbon it reads as a tube
+TUBEMAT = "{4C8E1A27-93B5-4D60-A7F2-6E0B9D3C5A18}"
 # From the SDK's StaticMesh / Heat Deform XML example.
 HEAT_MATERIAL = "{DE37F56D-442C-45AB-A325-4572668CE135}"
 HEAT_MESH = "{58F995B0-49DE-40FD-B839-881844D30EAD}"
@@ -60,6 +62,9 @@ EFFECTS = {   # name: (effect guid, kind, material, local space, capacity)
     "WFX_Ring":     ("{C3A85E21-7D49-4F06-B2E8-5A1D9C6F3B47}", "ring", MIST, False, 20000),
     # 21 Nov: WFX_Trail with our ring-texture material (world space).
     "WFX_RingTex":  ("{F1C7A3D8-2B64-4E95-9A30-6D8E2F1B5C07}", "particles", RINGMAT, False, 20000),
+    # 23 Nov: the vortex tube - WFX_Trail drawn as a RIBBON (particles joined into one continuous camera-facing strip,
+    # gm_size = width) with the tube texture, so it's one solid see-through tube from any angle.
+    "WFX_Tube":     ("{9B2E7D40-5C13-4A86-8F91-3D6A0E2B7C55}", "ribbon", TUBEMAT, False, 20000),
     # "Safe" twins: the same dials, built only from node types already proven in released MSFS 2024 effects.
     # No gravity-vector node (gravity pulls along the effect's own -y), no birth-velocity read-back,
     # no age node (age = life share x life), no spin, no glow. If a full effect fails to spawn, point the
@@ -189,7 +194,7 @@ def float3_in(link):
     return f"                <Float3In>{link or Z}, 0.000000, 0.000000, 0.000000</Float3In>\n"
 
 
-def build_particles(name, guid, material, local, capacity, full=True, ring=False, oriented=False):
+def build_particles(name, guid, material, local, capacity, full=True, ring=False, oriented=False, ribbon=False):
     P = {n: param(n, d) for n, d in DIALS + (RING_DIALS if ring else [])}
     pid = attr("pid", "id")
     t = attr("t", "AgeOverLifetime")
@@ -293,6 +298,8 @@ def build_particles(name, guid, material, local, capacity, full=True, ring=False
                        f"                <QuadBillboardAxis>{q_axis}, 0.000000, 0.000000, 1.000000</QuadBillboardAxis>\n"
                        "            </ParticleQuadBillboardAxis>\n")
         out_orient = "            <QuadBillboardType>NoBillboarding</QuadBillboardType>\n"
+    if ribbon:
+        out_orient += "            <PrimitiveType>Ribbon</PrimitiveType>\n"
 
     emitter, init, update, output = gid("emitter"), gid("init"), gid("update"), gid("output")
     init_rot = f"            <ParticleRotation>\n{float3_in(rot0)}            </ParticleRotation>\n" if full else ""
@@ -384,8 +391,9 @@ def write():
         PREFIX = name + "/"
         nodes.clear(); positions.clear(); _y[0] = 0; _seed[0] = 0
         blocks = (build_heat(name, guid) if kind == "heat"
-                  else build_particles(name, guid, material, local, cap, full=(kind in ("particles", "ring")),
-                                       ring=(kind == "ring"), oriented=(material == RINGMAT)))
+                  else build_particles(name, guid, material, local, cap, full=(kind in ("particles", "ring", "ribbon")),
+                                       ring=(kind == "ring"), oriented=(material == RINGMAT),
+                                       ribbon=(kind == "ribbon")))
         doc = ('﻿<?xml version="1.0" encoding="UTF-8"?>\n\n<SimBase.Document Type="AceXML" version="1,0">\n'
                "    <Descr>AceXML Document</Descr>\n    <WorldBase.Flight>\n" + blocks + "".join(nodes)
                + "    </WorldBase.Flight>\n</SimBase.Document>\n")
