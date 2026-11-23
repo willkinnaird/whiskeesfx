@@ -414,6 +414,22 @@ func (a *App) build() *Ini {
 // live settings are written, so the effect can sit a set distance from its marker (e.g. wing vapour 0.5 m under the
 // leading-edge points) while the markers stay where they were placed. The key itself is not passed to the module.
 func applyOffsetAdjust(f *Ini) {
+	// "offset_from = effect.NAME" first: take another effect's offset (after profile tweaks and moved markers), so a
+	// layer such as wingtip_vortex_ribs always sits exactly where its parent effect is
+	for _, sec := range effectSections(f) {
+		src, ok := f.Get(sec, "offset_from")
+		if !ok {
+			continue
+		}
+		f.Delete(sec, "offset_from")
+		src = strings.TrimSpace(src)
+		if !strings.HasPrefix(src, "effect.") {
+			src = "effect." + src
+		}
+		if off, ok := f.Get(src, "offset"); ok {
+			f.Set(sec, "offset", off)
+		}
+	}
 	for _, sec := range effectSections(f) {
 		adj, ok := f.Get(sec, "offset_adjust")
 		if !ok {
