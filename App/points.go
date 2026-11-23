@@ -340,7 +340,19 @@ func (a *App) movePoint(p *Profile, f *Ini, id string, axis int, delta float64, 
 		a.setTweak("", d.Globals[axis], fmtNum(round3(nv)), scope)
 	case "effect":
 		v := pv.Value
+		moved := nv - v[axis]
 		v[axis] = nv
+		if d.ID == "wingtip_top" && moved != 0 {
+			// the bottom marker is stored relative to the top one: shift that offset the other way so it stays put
+			switch axis {
+			case 0:
+				a.setTweak("@points", "winglet_dx", fmtNum(round3(a.storeValue(p, "winglet_dx")-moved)), scope)
+			case 1:
+				a.setTweak("@points", "winglet_h", fmtNum(round3(math.Max(0, a.storeValue(p, "winglet_h")+moved))), scope)
+			case 2:
+				a.setTweak("@points", "winglet_dz", fmtNum(round3(a.storeValue(p, "winglet_dz")-moved)), scope)
+			}
+		}
 		for _, e := range append([]string{d.Effect}, d.Followers...) {
 			a.setTweak("effect."+e, "offset", fmtVec(v), scope)
 		}
