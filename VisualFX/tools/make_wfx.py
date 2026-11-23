@@ -288,7 +288,10 @@ def build_particles(name, guid, material, local, capacity, full=True, ring=False
         q_axis = node("EmitterDirection", "qaxis", "            <EmitterDirectionType>Z+</EmitterDirectionType>\n")
         # (ParticleQuadBillboardUp isn't an accepted Init element - the build failed with it; a ring is round, so the
         # in-plane "up" doesn't matter)
-        init_orient = f"            <ParticleQuadBillboardAxis>\n{float3_in(q_axis)}            </ParticleQuadBillboardAxis>\n"
+        # format as the sim's VFX editor writes it (Float3In is rejected here: "Schema does not allow this operation")
+        init_orient = ("            <ParticleQuadBillboardAxis>\n"
+                       f"                <QuadBillboardAxis>{q_axis}, 0.000000, 0.000000, 1.000000</QuadBillboardAxis>\n"
+                       "            </ParticleQuadBillboardAxis>\n")
         out_orient = "            <QuadBillboardType>NoBillboarding</QuadBillboardType>\n"
 
     emitter, init, update, output = gid("emitter"), gid("init"), gid("update"), gid("output")
