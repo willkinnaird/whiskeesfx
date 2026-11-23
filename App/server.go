@@ -95,7 +95,7 @@ func (a *App) state(full bool) map[string]any {
 		"version": version, "view": viewOr(a.cfg.View), "rev": len(a.cfg.Tweaks), "sim": sim, "states": states,
 		"title": a.title, "profile": active, "profiles": profs, "manualProfile": a.cfg.ManualProfile,
 		"groups": a.groupViews(evs), "master": master, "tests": a.tests, "paused": a.paused, "message": a.message,
-		"progress": getProgress(), "dismissed": a.cfg.Dismissed, "update": getUpdate(), "devMode": a.cfg.DevMode, "hasToken": a.cfg.GitHubToken != "", "supported": a.title == "" || a.supported(), "assign": a.cfg.Assign, "tweaks": len(a.cfg.Tweaks),
+		"progress": getProgress(), "dismissed": a.cfg.Dismissed, "update": getUpdate(), "devMode": a.cfg.DevMode, "hasToken": a.cfg.GitHubToken != "", "feedback": a.feedbackTarget() != "", "supported": a.title == "" || a.supported(), "assign": a.cfg.Assign, "tweaks": len(a.cfg.Tweaks),
 		"settings": map[string]any{
 			"theme": themeOr(a.cfg.Theme), "onTop": a.cfg.OnTop, "keepInTray": a.cfg.KeepInTray, "autoUpdate": a.cfg.AutoUpdate, "startWithWindows": a.startsWin,
 			"sourceIni": a.sourcePath(), "workDir": a.cfg.WorkDir, "community": a.cfg.Community, "repo": a.cfg.Repo,
@@ -152,6 +152,13 @@ func routes() *http.ServeMux {
 			jsonOut(w, map[string]any{"ok": true})
 		})
 	}
+	post("/api/feedback", func(r *http.Request) error {
+		var b struct{ Kind, Message, Contact string }
+		if !readBody(r, &b) {
+			return errf("bad request")
+		}
+		return app.sendFeedback(b.Kind, b.Message, b.Contact)
+	})
 	post("/api/set", func(r *http.Request) error {
 		var b struct{ Section, Key, Value, Scope string }
 		if !readBody(r, &b) || b.Key == "" {

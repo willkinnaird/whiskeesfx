@@ -163,6 +163,14 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
 @media (prefers-reduced-motion:reduce){#drawer{transition:none}}
 .wkpub{border:1px solid #D9C089;background:linear-gradient(135deg,#FBF3DC,var(--panel) 70%);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
 [data-theme="dark"] .wkpub{border-color:#6B5424;background:linear-gradient(135deg,#2A2414,var(--panel) 70%)}
+.fbdlg{border:1px solid var(--line2);border-radius:16px;background:var(--panel);color:var(--text);padding:22px 24px;width:min(520px,92vw)}
+.fbdlg::backdrop{background:rgba(0,0,0,.55)}
+.fbdlg h2{margin:0 0 14px;font-size:20px}
+.fbdlg textarea,.fbdlg input{width:100%;box-sizing:border-box;background:var(--bg);color:var(--text);border:1px solid var(--line2);border-radius:10px;padding:10px;font:inherit}
+.fbl{display:block;margin:14px 0 6px;font-weight:600;font-size:14px}
+.fbbtns{justify-content:flex-end;gap:8px;margin-top:10px}
+#fbKind button[aria-pressed="true"]{background:var(--acc);color:var(--onacc);font-weight:700}
+#fbKind{margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -181,8 +189,24 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
   </div>
   <button class="btn" data-act="view" data-v="settings" id="tabSet">⚙ Settings</button>
   <button class="btn acc hidden" id="updBtn" data-act="update">Update</button>
+  <button class="btn hidden" data-act="feedback" id="fbBtn" title="Send feedback to Whiskee">💬 Feedback</button>
   <button class="btn" data-act="hide" id="hideBtn">Hide to tray</button>
 </header>
+<dialog id="fbDlg" class="fbdlg" aria-labelledby="fbT">
+  <form method="dialog" id="fbForm">
+    <h2 id="fbT">Send feedback to Whiskee</h2>
+    <div class="seg" id="fbKind" role="radiogroup" aria-label="Type">
+      <button type="button" data-k="bug" aria-pressed="true">🐞 Bug</button><button type="button" data-k="suggestion">💡 Suggestion</button><button type="button" data-k="praise">👍 Praise</button>
+    </div>
+    <label class="fbl" for="fbMsg">What happened, or what would you like?</label>
+    <textarea id="fbMsg" rows="6" maxlength="3500" placeholder="e.g. On landing in heavy rain the reverser spray cut out at 60 kt"></textarea>
+    <label class="fbl" for="fbWho">Discord or flightsim.to name <span class="small">(optional, so Whiskee can reply)</span></label>
+    <input id="fbWho" maxlength="100" autocomplete="off">
+    <p class="small">Your app version, aircraft, profile, settings tweaks and the effect status are attached so Whiskee can see your setup. Nothing else is sent.</p>
+    <div class="small" id="fbMsgOut" role="status"></div>
+    <div class="row fbbtns"><button type="button" class="btn" data-act="fb-cancel">Cancel</button><button type="button" class="btn acc" data-act="fb-send" id="fbSend">Send</button></div>
+  </form>
+</dialog>
 <div id="uiErr" class="banner hidden" role="alert"></div>
 <div id="banners"></div>
 
@@ -362,6 +386,23 @@ async function api(path, body) {
   const r = await fetch(path, body === undefined ? {} : {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
   return r.json();
 }
+function openFeedback() {
+  $("fbMsgOut").textContent = ""; $("fbSend").disabled = false;
+  $("fbDlg").showModal(); $("fbMsg").focus();
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("#fbKind button"); if (!b) return;
+  for (const x of $("fbKind").children) x.setAttribute("aria-pressed", x === b ? "true" : "false");
+});
+async function sendFeedback() {
+  const msg = $("fbMsg").value.trim();
+  if (!msg) { $("fbMsgOut").textContent = "Write a message first."; $("fbMsg").focus(); return; }
+  const kind = ($("fbKind").querySelector('[aria-pressed="true"]') || {}).dataset?.k || "bug";
+  $("fbSend").disabled = true; $("fbMsgOut").textContent = "Sending…";
+  const r = await api("/api/feedback", {Kind: kind, Message: msg, Contact: $("fbWho").value.trim()});
+  if (r && r.ok) { $("fbMsgOut").textContent = "Sent. Thank you!"; $("fbMsg").value = ""; setTimeout(() => $("fbDlg").close(), 1200); }
+  else { $("fbMsgOut").textContent = (r && r.error) || "Couldn't send."; $("fbSend").disabled = false; }
+}
 async function post(path, body) {
   const r = await api(path, body || {});
   if (r && r.ok === false && r.error) alert(r.error);
@@ -377,6 +418,7 @@ async function refresh(full) {
     const s = await api("/api/state" + (wantFull ? "?full=1" : ""));
     if (s.effects) { effects = s.effects; lastFull = Date.now(); }
     S = s;
+    $("fbBtn").classList.toggle("hidden", !s.feedback);
     s.groups = s.groups || []; s.profiles = s.profiles || []; s.states = s.states || {};
     try { render(); $("uiErr").classList.add("hidden"); }
     catch (e) { $("uiErr").textContent = "Something in this window went wrong (" + e.message + "). Your effects are fine. Restart the app from the tray; if it keeps happening, tell Will."; $("uiErr").classList.remove("hidden"); console.error(e); }
@@ -747,6 +789,9 @@ document.addEventListener("click", (ev) => {
     case "welcome-done": post("/api/welcome"); break;
     case "install-packages": post("/api/install-packages"); break;
     case "hide": api("/api/hide", {}); break;
+    case "feedback": openFeedback(); break;
+    case "fb-cancel": $("fbDlg").close(); break;
+    case "fb-send": sendFeedback(); break;
     case "forget": post("/api/assign", {Title: t.dataset.t, Profile: ""}).then(() => refresh(true)); break;
     case "savetoken": { const v = $("pubTok").value.trim(); if (v) post("/api/settings", {githubToken: v}).then(() => { $("pubTok").value = ""; }); break; }
     case "publish": publishNow(); break;

@@ -30,10 +30,12 @@ jobs:
           go-version: "1.24"
       - name: Build the app
         working-directory: App
+        env:
+          FEEDBACK_WEBHOOK: ${{ secrets.FEEDBACK_WEBHOOK }} # Discord webhook for in-app feedback (repo secret)
         run: |
           mkdir -p defaults && cp ../VisualFX/visualfx.ini defaults/visualfx.ini
           GOOS=windows GOARCH=amd64 go build -trimpath \
-            -ldflags "-s -w -H windowsgui -X main.version=${VER} -X main.defaultRepo=${GITHUB_REPOSITORY}" \
+            -ldflags "-s -w -H windowsgui -X main.version=${VER} -X main.defaultRepo=${GITHUB_REPOSITORY} -X main.feedbackURL=${FEEDBACK_WEBHOOK}" \
             -o ../dist/WhiskeesFX.exe .
       - name: Zip settings, profiles and packages
         run: |

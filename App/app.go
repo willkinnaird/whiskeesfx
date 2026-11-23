@@ -50,6 +50,7 @@ type Config struct {
 	AutoUpdate    bool                     `json:"autoUpdate"`
 	DevMode       bool                     `json:"devMode"`
 	TypeDefault   map[string]string        `json:"typeDefault,omitempty"` // aircraft type -> profile used when nothing is assigned
+	FeedbackURL   string                   `json:"feedbackUrl,omitempty"` // developer override for the feedback webhook
 	GitHubToken   string                   `json:"githubToken,omitempty"` // developer only: lets Publish write official profiles to the repo
 }
 
