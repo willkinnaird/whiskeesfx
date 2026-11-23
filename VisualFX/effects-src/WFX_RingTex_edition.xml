@@ -407,9 +407,6 @@
     <SimEdition.EditionInfo RelatedInstanceId="{C82A7671-2376-5509-AEF5-50F99D1004DD}">
         <NodePosition>60.000,6075.000</NodePosition>
     </SimEdition.EditionInfo>
-    <SimEdition.EditionInfo RelatedInstanceId="{6B148FC8-A7EA-5500-81E3-75121417A7EF}">
-        <NodePosition>280.000,6120.000</NodePosition>
-    </SimEdition.EditionInfo>
     <SimEdition.EditionInfo RelatedInstanceId="{F1C7A3D8-2B64-4E95-9A30-6D8E2F1B5C07}">
         <NodePosition>300.000,-100.000</NodePosition>
     </SimEdition.EditionInfo>

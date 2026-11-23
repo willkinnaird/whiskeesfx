@@ -282,13 +282,13 @@ def build_particles(name, guid, material, local, capacity, full=True, ring=False
 
     # ---- fixed orientation (rings): each quad stays square-on to the aircraft's fore-aft axis instead of turning to
     # face the camera, so a line of rings reads as a tube from the side (MSFS 2024 QuadBillboardType NoBillboarding;
-    # the quad is perpendicular to ParticleQuadBillboardAxis and parallel to ParticleQuadBillboardUp)
+    # the quad is perpendicular to ParticleQuadBillboardAxis)
     init_orient = out_orient = ""
     if oriented:
         q_axis = node("EmitterDirection", "qaxis", "            <EmitterDirectionType>Z+</EmitterDirectionType>\n")
-        q_up = node("EmitterDirection", "qup", "            <EmitterDirectionType>Y+</EmitterDirectionType>\n")
-        init_orient = (f"            <ParticleQuadBillboardAxis>\n{float3_in(q_axis)}            </ParticleQuadBillboardAxis>\n"
-                       f"            <ParticleQuadBillboardUp>\n{float3_in(q_up)}            </ParticleQuadBillboardUp>\n")
+        # (ParticleQuadBillboardUp isn't an accepted Init element - the build failed with it; a ring is round, so the
+        # in-plane "up" doesn't matter)
+        init_orient = f"            <ParticleQuadBillboardAxis>\n{float3_in(q_axis)}            </ParticleQuadBillboardAxis>\n"
         out_orient = "            <QuadBillboardType>NoBillboarding</QuadBillboardType>\n"
 
     emitter, init, update, output = gid("emitter"), gid("init"), gid("update"), gid("output")

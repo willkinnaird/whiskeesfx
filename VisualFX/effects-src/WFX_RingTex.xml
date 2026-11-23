@@ -39,9 +39,6 @@
             <ParticleQuadBillboardAxis>
                 <Float3In>{685057AE-2593-5BA6-842B-55ED6508A5A5}, 0.000000, 0.000000, 0.000000</Float3In>
             </ParticleQuadBillboardAxis>
-            <ParticleQuadBillboardUp>
-                <Float3In>{184E2518-AFD3-5F25-81E5-2AB1D96F1E2B}, 0.000000, 0.000000, 0.000000</Float3In>
-            </ParticleQuadBillboardUp>
         </VisualEffect.BlockParticleInit>
         <VisualEffect.BlockParticleUpdate InstanceId="{1864B786-9511-5759-8568-56876BB49F25}">
             <ParticleOutput>
@@ -775,10 +772,6 @@
         <VisualEffect.EmitterDirection InstanceId="{C82A7671-2376-5509-AEF5-50F99D1004DD}">
             <OutputValue>{685057AE-2593-5BA6-842B-55ED6508A5A5}</OutputValue>
             <EmitterDirectionType>Z+</EmitterDirectionType>
-        </VisualEffect.EmitterDirection>
-        <VisualEffect.EmitterDirection InstanceId="{6B148FC8-A7EA-5500-81E3-75121417A7EF}">
-            <OutputValue>{184E2518-AFD3-5F25-81E5-2AB1D96F1E2B}</OutputValue>
-            <EmitterDirectionType>Y+</EmitterDirectionType>
         </VisualEffect.EmitterDirection>
     </WorldBase.Flight>
 </SimBase.Document>
