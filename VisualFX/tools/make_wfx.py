@@ -189,7 +189,7 @@ def float3_in(link):
     return f"                <Float3In>{link or Z}, 0.000000, 0.000000, 0.000000</Float3In>\n"
 
 
-def build_particles(name, guid, material, local, capacity, full=True, ring=False):
+def build_particles(name, guid, material, local, capacity, full=True, ring=False, oriented=False):
     P = {n: param(n, d) for n, d in DIALS + (RING_DIALS if ring else [])}
     pid = attr("pid", "id")
     t = attr("t", "AgeOverLifetime")
@@ -280,6 +280,17 @@ def build_particles(name, guid, material, local, capacity, full=True, ring=False
     burst_left = clamp("burstleft", sub("burst1", 1.0, div("burstt", inst_age, add("bt0", P["gm_burst_time"], 0.001))), 0.0, 1.0)
     rate = add("rate", P["gm_rate"], mul("burst", burst_left, P["gm_burst"]))
 
+    # ---- fixed orientation (rings): each quad stays square-on to the aircraft's fore-aft axis instead of turning to
+    # face the camera, so a line of rings reads as a tube from the side (MSFS 2024 QuadBillboardType NoBillboarding;
+    # the quad is perpendicular to ParticleQuadBillboardAxis and parallel to ParticleQuadBillboardUp)
+    init_orient = out_orient = ""
+    if oriented:
+        q_axis = node("EmitterDirection", "qaxis", "            <EmitterDirectionType>Z+</EmitterDirectionType>\n")
+        q_up = node("EmitterDirection", "qup", "            <EmitterDirectionType>Y+</EmitterDirectionType>\n")
+        init_orient = (f"            <ParticleQuadBillboardAxis>\n{float3_in(q_axis)}            </ParticleQuadBillboardAxis>\n"
+                       f"            <ParticleQuadBillboardUp>\n{float3_in(q_up)}            </ParticleQuadBillboardUp>\n")
+        out_orient = "            <QuadBillboardType>NoBillboarding</QuadBillboardType>\n"
+
     emitter, init, update, output = gid("emitter"), gid("init"), gid("update"), gid("output")
     init_rot = f"            <ParticleRotation>\n{float3_in(rot0)}            </ParticleRotation>\n" if full else ""
     upd_rot = f"            <ParticleRotation>\n{float3_in(rot)}            </ParticleRotation>\n" if full else ""
@@ -311,7 +322,7 @@ def build_particles(name, guid, material, local, capacity, full=True, ring=False
 {float3_in(pos)}            </ParticlePosition>
 {init_rot}            <ParticleVelocity>
 {float3_in(vel0)}            </ParticleVelocity>
-        </VisualEffect.BlockParticleInit>
+{init_orient}        </VisualEffect.BlockParticleInit>
         <VisualEffect.BlockParticleUpdate InstanceId="{update}">
             <ParticleOutput>
                 <ObjectReference InstanceId="{output}" id="Output"/>
@@ -323,7 +334,7 @@ def build_particles(name, guid, material, local, capacity, full=True, ring=False
         </VisualEffect.BlockParticleUpdate>
         <VisualEffect.Output InstanceId="{output}">
             <Material>{material}</Material>
-            <ParticleColor>
+{out_orient}            <ParticleColor>
                 <ColorIn>{colour}, 0, 0, 0, 0</ColorIn>
             </ParticleColor>
 {emis_block}        </VisualEffect.Output>
@@ -371,7 +382,7 @@ def write():
         nodes.clear(); positions.clear(); _y[0] = 0; _seed[0] = 0
         blocks = (build_heat(name, guid) if kind == "heat"
                   else build_particles(name, guid, material, local, cap, full=(kind in ("particles", "ring")),
-                                       ring=(kind == "ring")))
+                                       ring=(kind == "ring"), oriented=(material == RINGMAT)))
         doc = ('﻿<?xml version="1.0" encoding="UTF-8"?>\n\n<SimBase.Document Type="AceXML" version="1,0">\n'
                "    <Descr>AceXML Document</Descr>\n    <WorldBase.Flight>\n" + blocks + "".join(nodes)
                + "    </WorldBase.Flight>\n</SimBase.Document>\n")

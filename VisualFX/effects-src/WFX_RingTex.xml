@@ -36,6 +36,12 @@
             <ParticleVelocity>
                 <Float3In>{2B7E6D29-607E-5E7E-9CB7-004F050DA44D}, 0.000000, 0.000000, 0.000000</Float3In>
             </ParticleVelocity>
+            <ParticleQuadBillboardAxis>
+                <Float3In>{685057AE-2593-5BA6-842B-55ED6508A5A5}, 0.000000, 0.000000, 0.000000</Float3In>
+            </ParticleQuadBillboardAxis>
+            <ParticleQuadBillboardUp>
+                <Float3In>{184E2518-AFD3-5F25-81E5-2AB1D96F1E2B}, 0.000000, 0.000000, 0.000000</Float3In>
+            </ParticleQuadBillboardUp>
         </VisualEffect.BlockParticleInit>
         <VisualEffect.BlockParticleUpdate InstanceId="{1864B786-9511-5759-8568-56876BB49F25}">
             <ParticleOutput>
@@ -53,6 +59,7 @@
         </VisualEffect.BlockParticleUpdate>
         <VisualEffect.Output InstanceId="{1BDE1282-9CA8-5E88-B1CB-B307BD17D8D9}">
             <Material>{9D3B6E52-4A71-4C08-8F2D-1E6B5A7C3D94}</Material>
+            <QuadBillboardType>NoBillboarding</QuadBillboardType>
             <ParticleColor>
                 <ColorIn>{09A089DA-44E3-5879-8510-769D96504DA3}, 0, 0, 0, 0</ColorIn>
             </ParticleColor>
@@ -765,5 +772,13 @@
             <xVariant>{6D8B932A-AD6D-560B-AF11-0D97B3A51EE8}, 0.000000</xVariant>
             <yVariant>{2A640E9C-3338-52B7-9BC1-30425C9388EC}, 0.000000</yVariant>
         </VisualEffect.AddOperation>
+        <VisualEffect.EmitterDirection InstanceId="{C82A7671-2376-5509-AEF5-50F99D1004DD}">
+            <OutputValue>{685057AE-2593-5BA6-842B-55ED6508A5A5}</OutputValue>
+            <EmitterDirectionType>Z+</EmitterDirectionType>
+        </VisualEffect.EmitterDirection>
+        <VisualEffect.EmitterDirection InstanceId="{6B148FC8-A7EA-5500-81E3-75121417A7EF}">
+            <OutputValue>{184E2518-AFD3-5F25-81E5-2AB1D96F1E2B}</OutputValue>
+            <EmitterDirectionType>Y+</EmitterDirectionType>
+        </VisualEffect.EmitterDirection>
     </WorldBase.Flight>
 </SimBase.Document>
