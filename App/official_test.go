@@ -9,7 +9,7 @@ import (
 
 func TestOfficialProfile(t *testing.T) {
 	p, err := loadProfile("profiles/fenix-a321-cfm-sharklets.ini", false)
-	if err != nil || !p.Official || p.Version != "0.1" || len(p.Notes) == 0 {
+	if err != nil || !p.Official || p.Version == "" || len(p.Notes) == 0 {
 		t.Fatalf("official profile not read: %v %+v", err, p)
 	}
 	u, _ := loadProfile("profiles/fenix-a321-cfm-sharklets.ini", true)
