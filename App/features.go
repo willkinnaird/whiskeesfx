@@ -15,7 +15,6 @@ var featureDefs = []FeatureDef{
 	{"wingtip", "Wingtip vortices", "The rope from each wingtip in humid air.", []string{"wingtip_vortex", "wingtip_vortex_near", "wingtip_vortex_ribs"}},
 	{"flaps", "Flap-edge vortices", "The weaker rope from the outer end of the flaps, one per flap setting (1, 2, 3/FULL).", []string{"flap_vortex", "flap_vortex_ribs", "flap_vortex_2", "flap_vortex_2_ribs", "flap_vortex_3", "flap_vortex_3_ribs"}},
 	{"wingvapour", "Wing vapour", "The vapour sheet over the wing in humid air at high angles of attack.", wingVapour},
-	{"pylon", "Pylon vapour", "Vapour streaming from where the pylon meets the wing.", []string{"pylon_vapour"}},
 	{"apu", "APU steam", "Steam and heat from the APU exhaust in the tail.", []string{"apu_steam"}},
 }
 
