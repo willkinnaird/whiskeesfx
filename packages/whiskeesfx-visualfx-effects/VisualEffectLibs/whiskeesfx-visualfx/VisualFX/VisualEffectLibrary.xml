@@ -7,8 +7,11 @@
 	<VisualEffect File="GenericTrail"/>
 	<VisualEffect File="WFX_MistSafe"/>
 	<VisualEffect File="WFX_HeatHaze"/>
+	<VisualEffect File="WFX_Tube"/>
+	<VisualEffect File="WFX_Ring"/>
 	<VisualEffect File="GenericRibbon"/>
 	<VisualEffect File="WFX_Droplets"/>
+	<VisualEffect File="WFX_RingTex"/>
 	<VisualEffect File="WFX_TrailSafe"/>
 	<VisualEffect File="WFX_Mist"/>
 </VisualEffectLibrary>

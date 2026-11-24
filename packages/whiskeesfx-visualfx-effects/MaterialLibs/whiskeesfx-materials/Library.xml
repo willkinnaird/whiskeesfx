@@ -1,0 +1,91 @@
+<Library Version="1.1.0">
+	<Material Version="1.5.0" Name="WFX_Tube" Guid="{4C8E1A27-93B5-4D60-A7F2-6E0B9D3C5A18}" Context="VFX editor" SurfaceType="UNDEFINED" Type="CODE_DIFFUSE" Metal="0.000000" Rough="0.000000" Opacity="1.000000" BlendMode="Alpha Blend">
+		<TagList/>
+		<FlagList/>
+		<TextureList>
+			<Texture FileName="TEXTURES\WFX_TUBE.PNG.ktx2" Binding="MTL_BITMAP_DECAL0"/>
+		</TextureList>
+		<Attributes>
+			<Diffuse Red="1.000000" Green="1.000000" Blue="1.000000"/>
+			<Emissive Red="0.000000" Green="0.000000" Blue="0.000000"/>
+			<UVScale U="1.000000" V="1.000000"/>
+			<UVRotate>0.000000</UVRotate>
+			<TwoSided>TRUE</TwoSided>
+			<FlipBackface>FALSE</FlipBackface>
+			<NoCastShadow>FALSE</NoCastShadow>
+			<SurfaceTypeOnTransparent>FALSE</SurfaceTypeOnTransparent>
+			<Labels/>
+			<ExtraParameters>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.100000"/>
+				<Parameter Value="20.000000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="0.240000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="20.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+			</ExtraParameters>
+		</Attributes>
+	</Material>
+	<Material Version="1.5.0" Name="WFX_Ring" Guid="{9D3B6E52-4A71-4C08-8F2D-1E6B5A7C3D94}" Context="VFX editor" SurfaceType="UNDEFINED" Type="CODE_DIFFUSE" Metal="0.000000" Rough="0.000000" Opacity="1.000000" BlendMode="Alpha Blend">
+		<TagList/>
+		<FlagList/>
+		<TextureList>
+			<Texture FileName="TEXTURES\WFX_RING.PNG.ktx2" Binding="MTL_BITMAP_DECAL0"/>
+		</TextureList>
+		<Attributes>
+			<Diffuse Red="1.000000" Green="1.000000" Blue="1.000000"/>
+			<Emissive Red="0.000000" Green="0.000000" Blue="0.000000"/>
+			<UVScale U="1.000000" V="1.000000"/>
+			<UVRotate>0.000000</UVRotate>
+			<TwoSided>TRUE</TwoSided>
+			<FlipBackface>FALSE</FlipBackface>
+			<NoCastShadow>FALSE</NoCastShadow>
+			<SurfaceTypeOnTransparent>FALSE</SurfaceTypeOnTransparent>
+			<Labels/>
+			<ExtraParameters>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.100000"/>
+				<Parameter Value="20.000000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="0.240000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="1.000000"/>
+				<Parameter Value="20.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+				<Parameter Value="0.000000"/>
+			</ExtraParameters>
+		</Attributes>
+	</Material>
+</Library>
+
