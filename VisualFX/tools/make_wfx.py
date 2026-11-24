@@ -195,6 +195,7 @@ def float3_in(link):
 
 
 def build_particles(name, guid, material, local, capacity, full=True, ring=False, oriented=False, ribbon=False):
+    rel = oriented or ribbon
     P = {n: param(n, d) for n, d in DIALS + (RING_DIALS if ring else [])}
     pid = attr("pid", "id")
     t = attr("t", "AgeOverLifetime")
@@ -217,7 +218,16 @@ def build_particles(name, guid, material, local, capacity, full=True, ring=False
     # ---- start velocity: base direction + jitter + speed along a random direction in a cone
     def vj(axis):
         return add("v" + axis, P["gm_dir_" + axis], mul("j" + axis, rand("rj" + axis, -1, 1, pid), P["gm_jitter"]))
-    base = vec("vbase", [vj("x"), vj("y"), vj("z")])
+    if rel:
+        # 24 Nov: aircraft-relative push for the world-space vortex effects. A world-space particle's velocity is in
+        # world axes, so "dir_z -40" meant a fixed world direction, not aft. Build it from the emitter's own axes
+        # (the same EmitterDirection node that orients the rings): x = sideways, y = aircraft up, z = fore-aft.
+        ex = node("EmitterDirection", "eaxx", "            <EmitterDirectionType>X+</EmitterDirectionType>\n")
+        ey = node("EmitterDirection", "eaxy", "            <EmitterDirectionType>Y+</EmitterDirectionType>\n")
+        ez = node("EmitterDirection", "eaxz", "            <EmitterDirectionType>Z+</EmitterDirectionType>\n")
+        base = add("vbase", add("vbxy", mul("vbx", ex, vj("x")), mul("vby", ey, vj("y"))), mul("vbz", ez, vj("z")))
+    else:
+        base = vec("vbase", [vj("x"), vj("y"), vj("z")])
     cone = node("RandomDirectionInCone", "cone",
                 pin("InputPitch", P["gm_pitch"]) + pin("InputHeading", P["gm_heading"])
                 + pin("InnerAngle", P["gm_cone_in"]) + pin("OuterAngle", P["gm_cone"])
