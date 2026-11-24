@@ -273,6 +273,7 @@ select{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padd
 </section>
 
 <section id="setv" class="hidden" aria-label="Settings">
+  <div class="row" style="margin-bottom:4px"><button class="btn" data-act="back" id="backBtn">← Back</button></div>
   <div class="card grp"><h2>App</h2>
     <div class="field">Theme<div class="seg" id="themeSeg"><button data-act="theme" data-v="auto">Match Windows</button><button data-act="theme" data-v="light">Light</button><button data-act="theme" data-v="dark">Dark</button></div></div>
     <label class="row"><input type="checkbox" data-act="set" data-k="onTop" id="sTop"> Keep this window on top of the sim (MSFS windowed or borderless)</label>
@@ -448,6 +449,9 @@ function render() {
   const s = S;
   applyTheme();
   view = s.view || "suite";
+  if (view !== "settings") prevView = view;
+  { const names = {suite: "WhiskeesFX", home: "AeroFX", basic: "AeroFX", advanced: "AeroFX", profiles: "Profiles", camera: "CameraFX", lighting: "LightingFX"};
+    $("backBtn").textContent = "← Back to " + (names[prevView] || "WhiskeesFX"); }
   const aero = ["home", "basic", "advanced", "profiles"].includes(view);
   $("suite").classList.toggle("hidden", view !== "suite");
   $("soonv").classList.toggle("hidden", view !== "camera" && view !== "lighting");
@@ -597,6 +601,10 @@ function planSVG(type, fill, extra) {
 }
 
 const planType = (p) => ((p && p.type) || "").replace("Fenix ", "") || "A320";
+let prevView = "suite";   // where Settings' Back button returns to
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && view === "settings" && !document.querySelector("dialog[open]")) post("/api/settings", {view: prevView || "suite"});
+});
 function renderSuite() {
   if (!$("sPlane").innerHTML) $("sPlane").innerHTML = planSVG("A320", "#8CC4A6", 'style="width:100%;height:auto;display:block"');
   const s = S, sim = s.sim, p = s.profile || {};
@@ -781,6 +789,7 @@ document.addEventListener("click", (ev) => {
   const a = t.dataset.act, sec = t.dataset.sec;
   switch (a) {
     case "view": post("/api/settings", {view: t.dataset.v}); break;
+    case "back": post("/api/settings", {view: prevView || "suite"}); break;
     case "theme": post("/api/settings", {theme: t.dataset.v}); break;
     case "preset": post("/api/preset", {Name: t.dataset.v}); break;
     case "dismiss": post("/api/dismiss", {Key: t.dataset.k}); break;
